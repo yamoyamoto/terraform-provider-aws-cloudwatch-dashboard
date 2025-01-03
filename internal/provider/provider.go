@@ -31,7 +31,26 @@ func (p *cwDashboardProvider) Metadata(_ context.Context, _ provider.MetadataReq
 }
 
 func (p *cwDashboardProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
-	resp.Schema = schema.Schema{}
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"widgets": schema.ListNestedAttribute{
+				Description: "List of widgets in the dashboard",
+				Required:    true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"type": schema.StringAttribute{
+							Description: "The type of the widget",
+							Required:    true,
+						},
+						"properties": schema.MapAttribute{
+							Description: "The properties of the widget",
+							Required:    true,
+						},
+					},
+				},
+			},
+		},
+	}
 }
 
 func (p *cwDashboardProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {

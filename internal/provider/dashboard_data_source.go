@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -33,13 +34,51 @@ func (d *dashboardDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 				Description: "The name of the dashboard",
 				Required:    true,
 			},
+			"widgets": schema.ListNestedAttribute{
+				Description: "List of widgets in the dashboard",
+				Required:    true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"type": schema.StringAttribute{
+							Description: "The type of the widget",
+							Required:    true,
+						},
+						"properties": schema.MapAttribute{
+							Description: "The properties of the widget",
+							Required:    true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
 
+type Widget interface {
+	ToJSON() (string, error)
+}
+
+type TextWidget struct {
+	Content string
+}
+
+func (tw TextWidget) ToJSON() (string, error) {
+	widget := map[string]interface{}{
+		"type": "text",
+		"properties": map[string]interface{}{
+			"content": tw.Content,
+		},
+	}
+	jsonData, err := json.Marshal(widget)
+	if err != nil {
+		return "", err
+	}
+	return string(jsonData), nil
+}
+
 type dashboardDataSourceModel struct {
-	Name types.String `tfsdk:"name"`
-	// TODO: add more fields here
+	Name    types.String `tfsdk:"name"`
+	Widgets []Widget     `tfsdk:"widgets"`
 }
 
 func (d *dashboardDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -50,7 +89,36 @@ func (d *dashboardDataSource) Read(ctx context.Context, req datasource.ReadReque
 		return
 	}
 
-	diags := resp.State.Set(ctx, &state)
+	widgetsJSON := []string{}
+	for _, widget := range state.Widgets {
+		jsonData, err := widget.ToJSON()
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error converting widget to JSON",
+				err.Error(),
+			)
+			return
+		}
+		widgetsJSON = append(widgetsJSON, jsonData)
+	}
+
+	dashboardJSON := map[string]interface{}{
+		"name":    state.Name.Value,
+		"widgets": widgetsJSON,
+	}
+
+	jsonData, err := json.Marshal(dashboardJSON)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error converting dashboard to JSON",
+			err.Error(),
+		)
+		return
+	}
+
+	stateJSON := types.String{Value: string(jsonData)}
+
+	diags := resp.State.Set(ctx, &stateJSON)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
