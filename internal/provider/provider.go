@@ -38,12 +38,8 @@ func (p *cwDashboardProvider) Schema(_ context.Context, _ provider.SchemaRequest
 				Required:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"type": schema.StringAttribute{
-							Description: "The type of the widget",
-							Required:    true,
-						},
-						"properties": schema.MapAttribute{
-							Description: "The properties of the widget",
+						"text": schema.StringAttribute{
+							Description: "The text content of the widget",
 							Required:    true,
 						},
 					},
@@ -59,6 +55,7 @@ func (p *cwDashboardProvider) Configure(ctx context.Context, req provider.Config
 func (p *cwDashboardProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewDashboardDataSource(),
+		NewTextWidgetDataSource(),
 	}
 }
 

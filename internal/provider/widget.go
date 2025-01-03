@@ -9,17 +9,11 @@ type Widget interface {
 }
 
 type TextWidget struct {
-	Content string
+	Text string `json:"text"`
 }
 
 func (tw TextWidget) ToJSON() (string, error) {
-	widget := map[string]interface{}{
-		"type": "text",
-		"properties": map[string]interface{}{
-			"content": tw.Content,
-		},
-	}
-	jsonData, err := json.Marshal(widget)
+	jsonData, err := json.Marshal(tw)
 	if err != nil {
 		return "", err
 	}

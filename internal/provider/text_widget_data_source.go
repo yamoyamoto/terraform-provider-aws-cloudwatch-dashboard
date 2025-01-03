@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -29,8 +28,8 @@ func (d *textWidgetDataSource) Metadata(_ context.Context, req datasource.Metada
 func (d *textWidgetDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"content": schema.StringAttribute{
-				Description: "The content of the text widget",
+			"text": schema.StringAttribute{
+				Description: "The text content of the widget",
 				Required:    true,
 			},
 		},
@@ -38,7 +37,7 @@ func (d *textWidgetDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 }
 
 type textWidgetDataSourceModel struct {
-	Content types.String `tfsdk:"content"`
+	Text types.String `tfsdk:"text"`
 }
 
 func (d *textWidgetDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -49,25 +48,7 @@ func (d *textWidgetDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	widget := map[string]interface{}{
-		"type": "text",
-		"properties": map[string]interface{}{
-			"content": state.Content.Value,
-		},
-	}
-
-	jsonData, err := json.Marshal(widget)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error converting text widget to JSON",
-			err.Error(),
-		)
-		return
-	}
-
-	stateJSON := types.String{Value: string(jsonData)}
-
-	diags := resp.State.Set(ctx, &stateJSON)
+	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
