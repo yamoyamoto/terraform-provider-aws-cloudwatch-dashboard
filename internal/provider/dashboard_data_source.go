@@ -89,17 +89,13 @@ func (d *dashboardDataSource) Read(ctx context.Context, req datasource.ReadReque
 		widgets = append(widgets, widget)
 	}
 
-	tflog.Info(ctx, "widgets!!!!", map[string]interface{}{
-		"widgets": widgets,
-	})
-
 	dashboardJson, err := buildDashboardBodyJson(ctx, state, widgets)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to build dashboard json", err.Error())
 		return
 	}
 
-	tflog.Info(ctx, "dashboard json", map[string]interface{}{
+	tflog.Info(ctx, "built dashboard json", map[string]interface{}{
 		"dashboard_json": dashboardJson,
 	})
 
