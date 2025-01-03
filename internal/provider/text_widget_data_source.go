@@ -30,10 +30,6 @@ func (d *textWidgetDataSource) Metadata(_ context.Context, req datasource.Metada
 func (d *textWidgetDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"title": schema.StringAttribute{
-				Description: "The name of the dashboard",
-				Required:    true,
-			},
 			"x": schema.Int32Attribute{
 				Description: "The x position of the widget",
 				Optional:    true,
@@ -68,7 +64,6 @@ func (d *textWidgetDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 }
 
 type textWidgetDataSourceModel struct {
-	Title      types.String `tfsdk:"title"`
 	X          types.Int32  `tfsdk:"x"`
 	Y          types.Int32  `tfsdk:"y"`
 	Markdown   types.String `tfsdk:"markdown"`
@@ -81,7 +76,6 @@ type textWidgetDataSourceModel struct {
 
 type textWidgetDataSourceSettings struct {
 	Type       string `json:"type"`
-	Title      string `json:"title"`
 	X          int32  `json:"x"`
 	Y          int32  `json:"y"`
 	Markdown   string `json:"markdown"`
@@ -104,7 +98,6 @@ func (d *textWidgetDataSource) Read(ctx context.Context, req datasource.ReadRequ
 
 	settings := textWidgetDataSourceSettings{
 		Type:       typeTextWidget,
-		Title:      state.Title.ValueString(),
 		X:          state.X.ValueInt32(),
 		Y:          state.Y.ValueInt32(),
 		Markdown:   state.Markdown.ValueString(),
@@ -135,11 +128,6 @@ func (d *textWidgetDataSource) Read(ctx context.Context, req datasource.ReadRequ
 func parseCWDashboardBodyWidgetText(ctx context.Context, widget map[string]interface{}) (CWDashboardBodyWidget, error) {
 	cwWidget := CWDashboardBodyWidget{
 		Type: "text",
-	}
-
-	title, ok := widget["title"].(string)
-	if ok {
-		cwWidget.Properties = title
 	}
 
 	x, ok := widget["x"].(float64)
