@@ -30,14 +30,6 @@ func (d *textWidgetDataSource) Metadata(_ context.Context, req datasource.Metada
 func (d *textWidgetDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"x": schema.Int32Attribute{
-				Description: "The x position of the widget",
-				Optional:    true,
-			},
-			"y": schema.Int32Attribute{
-				Description: "The y position of the widget",
-				Optional:    true,
-			},
 			"markdown": schema.StringAttribute{
 				Description: "The markdown content of the widget",
 				Required:    true,
@@ -64,8 +56,6 @@ func (d *textWidgetDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 }
 
 type textWidgetDataSourceModel struct {
-	X          types.Int32  `tfsdk:"x"`
-	Y          types.Int32  `tfsdk:"y"`
 	Markdown   types.String `tfsdk:"markdown"`
 	Background types.String `tfsdk:"background"`
 	Width      types.Int32  `tfsdk:"width"`
@@ -76,8 +66,6 @@ type textWidgetDataSourceModel struct {
 
 type textWidgetDataSourceSettings struct {
 	Type       string `json:"type"`
-	X          int32  `json:"x"`
-	Y          int32  `json:"y"`
 	Markdown   string `json:"markdown"`
 	Background string `json:"background"`
 	Width      int32  `json:"width"`
@@ -98,8 +86,6 @@ func (d *textWidgetDataSource) Read(ctx context.Context, req datasource.ReadRequ
 
 	settings := textWidgetDataSourceSettings{
 		Type:       typeTextWidget,
-		X:          state.X.ValueInt32(),
-		Y:          state.Y.ValueInt32(),
 		Markdown:   state.Markdown.ValueString(),
 		Background: state.Background.ValueString(),
 		Width:      state.Width.ValueInt32(),
@@ -125,20 +111,9 @@ func (d *textWidgetDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	}
 }
 
-func parseCWDashboardBodyWidgetText(ctx context.Context, widget map[string]interface{}) (CWDashboardBodyWidget, error) {
+func parseCWDashboardBodyWidgetText(ctx context.Context, widget map[string]interface{}, beforeWidgetPosition widgetPosition) (CWDashboardBodyWidget, error) {
 	cwWidget := CWDashboardBodyWidget{
 		Type: "text",
-	}
-
-	x, ok := widget["x"].(float64)
-
-	if ok {
-		cwWidget.X = int32(x)
-	}
-
-	y, ok := widget["y"].(float64)
-	if ok {
-		cwWidget.Y = int32(y)
 	}
 
 	width, ok := widget["width"].(float64)
@@ -150,6 +125,10 @@ func parseCWDashboardBodyWidgetText(ctx context.Context, widget map[string]inter
 	if ok {
 		cwWidget.Height = int32(height)
 	}
+
+	position := calculatePosition(widgetSize{Width: cwWidget.Width, Height: cwWidget.Height}, beforeWidgetPosition)
+	cwWidget.X = position.X
+	cwWidget.Y = position.Y
 
 	property := CWDashboardBodyWidgetPropertyText{}
 	mkDown, ok := widget["markdown"].(string)
