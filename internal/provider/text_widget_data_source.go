@@ -111,7 +111,7 @@ func (d *textWidgetDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	}
 }
 
-func parseCWDashboardBodyWidgetText(ctx context.Context, widget map[string]interface{}, beforeWidgetPosition widgetPosition) (CWDashboardBodyWidget, error) {
+func parseCWDashboardBodyWidgetText(ctx context.Context, widget map[string]interface{}, beforeWidgetPosition *widgetPosition) (CWDashboardBodyWidget, error) {
 	cwWidget := CWDashboardBodyWidget{
 		Type: "text",
 	}

@@ -10,16 +10,28 @@ func TestCalculatePosition(t *testing.T) {
 	tests := []struct {
 		name                 string
 		size                 widgetSize
-		beforeWidgetPosition widgetPosition
+		beforeWidgetPosition *widgetPosition
 		expected             widgetPosition
 	}{
+		{
+			name: "should start from origin when beforeWidgetPosition is nil",
+			size: widgetSize{
+				Width:  8,
+				Height: 6,
+			},
+			beforeWidgetPosition: nil,
+			expected: widgetPosition{
+				X: 0,
+				Y: 0,
+			},
+		},
 		{
 			name: "should calculate next position in same row",
 			size: widgetSize{
 				Width:  8,
 				Height: 6,
 			},
-			beforeWidgetPosition: widgetPosition{X: 0, Y: 0},
+			beforeWidgetPosition: &widgetPosition{X: 0, Y: 0},
 			expected: widgetPosition{
 				X: 8,
 				Y: 0,
@@ -31,7 +43,7 @@ func TestCalculatePosition(t *testing.T) {
 				Width:  8,
 				Height: 6,
 			},
-			beforeWidgetPosition: widgetPosition{X: 20, Y: 0},
+			beforeWidgetPosition: &widgetPosition{X: 20, Y: 0},
 			expected: widgetPosition{
 				X: 0,
 				Y: 6,
@@ -43,7 +55,7 @@ func TestCalculatePosition(t *testing.T) {
 				Width:  8,
 				Height: 6,
 			},
-			beforeWidgetPosition: widgetPosition{X: 24, Y: 6},
+			beforeWidgetPosition: &widgetPosition{X: 24, Y: 6},
 			expected: widgetPosition{
 				X: 0,
 				Y: 12,

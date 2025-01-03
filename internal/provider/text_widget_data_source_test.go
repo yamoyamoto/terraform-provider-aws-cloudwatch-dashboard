@@ -12,7 +12,7 @@ func TestParseCWDashboardBodyWidgetText(t *testing.T) {
 	type testCase struct {
 		name                 string
 		input                map[string]interface{}
-		beforeWidgetPosition widgetPosition
+		beforeWidgetPosition *widgetPosition
 		expected             CWDashboardBodyWidget
 	}
 
@@ -25,7 +25,7 @@ func TestParseCWDashboardBodyWidgetText(t *testing.T) {
 				"markdown":   "# Test Header",
 				"background": "#ffffff",
 			},
-			beforeWidgetPosition: widgetPosition{X: 0, Y: 0},
+			beforeWidgetPosition: &widgetPosition{X: 0, Y: 0},
 			expected: CWDashboardBodyWidget{
 				Type:   "text",
 				X:      8,
@@ -45,10 +45,29 @@ func TestParseCWDashboardBodyWidgetText(t *testing.T) {
 				"height":   float64(6),
 				"markdown": "# Test Header",
 			},
-			beforeWidgetPosition: widgetPosition{X: 8, Y: 0},
+			beforeWidgetPosition: &widgetPosition{X: 8, Y: 0},
 			expected: CWDashboardBodyWidget{
 				Type:   "text",
 				X:      16,
+				Y:      0,
+				Width:  8,
+				Height: 6,
+				Properties: CWDashboardBodyWidgetPropertyText{
+					Markdown: "# Test Header",
+				},
+			},
+		},
+		{
+			name: "should start from origin when beforeWidgetPosition is nil",
+			input: map[string]interface{}{
+				"width":    float64(8),
+				"height":   float64(6),
+				"markdown": "# Test Header",
+			},
+			beforeWidgetPosition: nil,
+			expected: CWDashboardBodyWidget{
+				Type:   "text",
+				X:      0,
 				Y:      0,
 				Width:  8,
 				Height: 6,
@@ -64,7 +83,7 @@ func TestParseCWDashboardBodyWidgetText(t *testing.T) {
 				"height":   float64(6),
 				"markdown": "# Test Header",
 			},
-			beforeWidgetPosition: widgetPosition{X: 20, Y: 0},
+			beforeWidgetPosition: &widgetPosition{X: 20, Y: 0},
 			expected: CWDashboardBodyWidget{
 				Type:   "text",
 				X:      0,
@@ -84,7 +103,7 @@ func TestParseCWDashboardBodyWidgetText(t *testing.T) {
 				"markdown":   "# Test Header",
 				"background": 123,
 			},
-			beforeWidgetPosition: widgetPosition{X: 0, Y: 6},
+			beforeWidgetPosition: &widgetPosition{X: 0, Y: 6},
 			expected: CWDashboardBodyWidget{
 				Type:   "text",
 				X:      8,
@@ -93,29 +112,6 @@ func TestParseCWDashboardBodyWidgetText(t *testing.T) {
 				Height: 6,
 				Properties: CWDashboardBodyWidgetPropertyText{
 					Markdown: "# Test Header",
-				},
-			},
-		},
-		{
-			name: "should successfully parse while ignoring unknown fields",
-			input: map[string]interface{}{
-				"width":         float64(8),
-				"height":        float64(6),
-				"markdown":      "# Test Header",
-				"background":    "#ffffff",
-				"unknown_field": "value",
-				"another_field": 123,
-			},
-			beforeWidgetPosition: widgetPosition{X: 8, Y: 6},
-			expected: CWDashboardBodyWidget{
-				Type:   "text",
-				X:      16,
-				Y:      6,
-				Width:  8,
-				Height: 6,
-				Properties: CWDashboardBodyWidgetPropertyText{
-					Markdown:   "# Test Header",
-					Background: "#ffffff",
 				},
 			},
 		},

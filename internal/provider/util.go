@@ -14,7 +14,14 @@ const (
 	MAX_WIDTH = 24
 )
 
-func calculatePosition(size widgetSize, beforeWidgetPosition widgetPosition) widgetPosition {
+func calculatePosition(size widgetSize, beforeWidgetPosition *widgetPosition) widgetPosition {
+	if beforeWidgetPosition == nil {
+		return widgetPosition{
+			X: 0,
+			Y: 0,
+		}
+	}
+
 	x := beforeWidgetPosition.X + size.Width
 	y := beforeWidgetPosition.Y
 	if x >= MAX_WIDTH {

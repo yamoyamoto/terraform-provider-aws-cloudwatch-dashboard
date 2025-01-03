@@ -149,7 +149,7 @@ type CWDashboardBodyWidgetPropertyExplorer struct {
 
 func buildDashboardBodyJson(ctx context.Context, state dashboardDataSourceModel, rawWidgets []map[string]interface{}) (string, error) {
 	widgets := make([]CWDashboardBodyWidget, 0)
-	currentPosition := widgetPosition{X: 0, Y: 0}
+	var currentPosition *widgetPosition
 	for _, rawWidget := range rawWidgets {
 		widgetType, ok := rawWidget["type"].(string)
 		if !ok {
@@ -162,6 +162,8 @@ func buildDashboardBodyJson(ctx context.Context, state dashboardDataSourceModel,
 			if err != nil {
 				return "", fmt.Errorf("failed to parse text widget: %w", err)
 			}
+			currentPosition = &widgetPosition{X: widget.X, Y: widget.Y}
+
 			widgets = append(widgets, widget)
 
 		default:
