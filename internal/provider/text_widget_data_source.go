@@ -28,7 +28,6 @@ func (d *textWidgetDataSource) Metadata(_ context.Context, req datasource.Metada
 }
 
 func (d *textWidgetDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	// TODO: add more fields
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"title": schema.StringAttribute{

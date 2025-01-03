@@ -62,7 +62,6 @@ type dashboardDataSourceModel struct {
 	PeriodOverride types.String `tfsdk:"period_override"`
 	Widgets        types.List   `tfsdk:"widgets"`
 	Json           types.String `tfsdk:"json"`
-	// TODO: add more fields here
 }
 
 func (d *dashboardDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
