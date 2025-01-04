@@ -44,6 +44,28 @@ func (d *graphWidgetDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 				Optional:    true,
 				ElementType: types.StringType,
 			},
+			"left_y_axis": schema.SingleNestedAttribute{
+				Description: "Settings for the left Y axis",
+				Optional:    true,
+				Attributes: map[string]schema.Attribute{
+					"label": schema.StringAttribute{
+						Description: "The label",
+						Optional:    true,
+					},
+					"max": schema.Float64Attribute{
+						Description: "The maximum value",
+						Optional:    true,
+					},
+					"min": schema.Float64Attribute{
+						Description: "The minimum value",
+						Optional:    true,
+					},
+					"show_units": schema.BoolAttribute{
+						Description: "Whether to show units",
+						Optional:    true,
+					},
+				},
+			},
 			"legend_position": schema.StringAttribute{
 				Description: "Position of the legend",
 				Optional:    true,
@@ -64,6 +86,28 @@ func (d *graphWidgetDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 				Description: "Metrics to display on right Y axis",
 				Optional:    true,
 				ElementType: types.StringType,
+			},
+			"right_y_axis": schema.SingleNestedAttribute{
+				Description: "Settings for the right Y axis",
+				Optional:    true,
+				Attributes: map[string]schema.Attribute{
+					"label": schema.StringAttribute{
+						Description: "The label",
+						Optional:    true,
+					},
+					"max": schema.Float64Attribute{
+						Description: "The maximum value",
+						Optional:    true,
+					},
+					"min": schema.Float64Attribute{
+						Description: "The minimum value",
+						Optional:    true,
+					},
+					"show_units": schema.BoolAttribute{
+						Description: "Whether to show units",
+						Optional:    true,
+					},
+				},
 			},
 			"sparkline": schema.BoolAttribute{
 				Description: "Whether the graph should be shown as a sparkline",
@@ -109,44 +153,62 @@ const (
 	typeGraphWidget = "graph"
 )
 
+type graphWidgetYAxisDataSourceModel struct {
+	Label     types.String  `tfsdk:"label"`
+	Max       types.Float64 `tfsdk:"max"`
+	Min       types.Float64 `tfsdk:"min"`
+	ShowUnits types.Bool    `tfsdk:"show_units"`
+}
+
 type graphWidgetDataSourceModel struct {
-	End            types.String   `tfsdk:"end"`
-	Height         types.Int32    `tfsdk:"height"`
-	Left           []types.String `tfsdk:"left"` // JSON string containing array of metrics
-	LegendPosition types.String   `tfsdk:"legend_position"`
-	LiveData       types.Bool     `tfsdk:"live_data"`
-	Period         types.Int32    `tfsdk:"period"`
-	Region         types.String   `tfsdk:"region"`
-	Right          []types.String `tfsdk:"right"` // JSON string containing array of metrics
-	Sparkline      types.Bool     `tfsdk:"sparkline"`
-	Stacked        types.Bool     `tfsdk:"stacked"`
-	Start          types.String   `tfsdk:"start"`
-	Statistic      types.String   `tfsdk:"statistic"`
-	Timezone       types.String   `tfsdk:"timezone"`
-	Title          types.String   `tfsdk:"title"`
-	View           types.String   `tfsdk:"view"`
-	Width          types.Int32    `tfsdk:"width"`
-	Json           types.String   `tfsdk:"json"`
+	End            types.String                     `tfsdk:"end"`
+	Height         types.Int32                      `tfsdk:"height"`
+	Left           []types.String                   `tfsdk:"left"` // JSON string containing array of metrics
+	LeftYAxis      *graphWidgetYAxisDataSourceModel `tfsdk:"left_y_axis"`
+	LegendPosition types.String                     `tfsdk:"legend_position"`
+	LiveData       types.Bool                       `tfsdk:"live_data"`
+	Period         types.Int32                      `tfsdk:"period"`
+	Region         types.String                     `tfsdk:"region"`
+	Right          []types.String                   `tfsdk:"right"` // JSON string containing array of metrics
+	RightYAxis     *graphWidgetYAxisDataSourceModel `tfsdk:"right_y_axis"`
+	Sparkline      types.Bool                       `tfsdk:"sparkline"`
+	Stacked        types.Bool                       `tfsdk:"stacked"`
+	Start          types.String                     `tfsdk:"start"`
+	Statistic      types.String                     `tfsdk:"statistic"`
+	Timezone       types.String                     `tfsdk:"timezone"`
+	Title          types.String                     `tfsdk:"title"`
+	View           types.String                     `tfsdk:"view"`
+	Width          types.Int32                      `tfsdk:"width"`
+	Json           types.String                     `tfsdk:"json"`
+}
+
+type graphWidgetYAxisDataSourceSettings struct {
+	Label     string  `json:"label,omitempty"`
+	Max       float64 `json:"max,omitempty"`
+	Min       float64 `json:"min,omitempty"`
+	ShowUnits bool    `json:"show_units,omitempty"`
 }
 
 type graphWidgetDataSourceSettings struct {
-	Type           string                     `json:"type"`
-	End            string                     `json:"end,omitempty"`
-	Height         int32                      `json:"height"`
-	Left           []metricDataSourceSettings `json:"left,omitempty"`
-	LegendPosition string                     `json:"legend_position,omitempty"`
-	LiveData       bool                       `json:"live_data,omitempty"`
-	Period         int32                      `json:"period,omitempty"`
-	Region         string                     `json:"region,omitempty"`
-	Right          []metricDataSourceSettings `json:"right,omitempty"`
-	Sparkline      bool                       `json:"sparkline,omitempty"`
-	Stacked        bool                       `json:"stacked,omitempty"`
-	Start          string                     `json:"start,omitempty"`
-	Statistic      string                     `json:"statistic,omitempty"`
-	Timezone       string                     `json:"timezone,omitempty"`
-	Title          string                     `json:"title,omitempty"`
-	View           string                     `json:"view,omitempty"`
-	Width          int32                      `json:"width"`
+	Type           string                              `json:"type"`
+	End            string                              `json:"end,omitempty"`
+	Height         int32                               `json:"height"`
+	Left           []metricDataSourceSettings          `json:"left,omitempty"`
+	LeftYAxis      *graphWidgetYAxisDataSourceSettings `json:"left_y_axis,omitempty"`
+	LegendPosition string                              `json:"legend_position,omitempty"`
+	LiveData       bool                                `json:"live_data,omitempty"`
+	Period         int32                               `json:"period,omitempty"`
+	Region         string                              `json:"region,omitempty"`
+	Right          []metricDataSourceSettings          `json:"right,omitempty"`
+	RightYAxis     *graphWidgetYAxisDataSourceSettings `json:"right_y_axis,omitempty"`
+	Sparkline      bool                                `json:"sparkline,omitempty"`
+	Stacked        bool                                `json:"stacked,omitempty"`
+	Start          string                              `json:"start,omitempty"`
+	Statistic      string                              `json:"statistic,omitempty"`
+	Timezone       string                              `json:"timezone,omitempty"`
+	Title          string                              `json:"title,omitempty"`
+	View           string                              `json:"view,omitempty"`
+	Width          int32                               `json:"width"`
 }
 
 func (d *graphWidgetDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -199,6 +261,23 @@ func (d *graphWidgetDataSource) Read(ctx context.Context, req datasource.ReadReq
 		Width:          state.Width.ValueInt32(),
 	}
 
+	if state.LeftYAxis != nil {
+		settings.LeftYAxis = &graphWidgetYAxisDataSourceSettings{
+			Label:     state.LeftYAxis.Label.ValueString(),
+			Max:       state.LeftYAxis.Max.ValueFloat64(),
+			Min:       state.LeftYAxis.Min.ValueFloat64(),
+			ShowUnits: state.LeftYAxis.ShowUnits.ValueBool(),
+		}
+	}
+	if state.RightYAxis != nil {
+		settings.RightYAxis = &graphWidgetYAxisDataSourceSettings{
+			Label:     state.RightYAxis.Label.ValueString(),
+			Max:       state.RightYAxis.Max.ValueFloat64(),
+			Min:       state.RightYAxis.Min.ValueFloat64(),
+			ShowUnits: state.RightYAxis.ShowUnits.ValueBool(),
+		}
+	}
+
 	b, err := json.Marshal(settings)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to marshal widget settings", err.Error())
@@ -224,9 +303,9 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 		Width:  widget.Width,
 		Height: widget.Height,
 		Properties: CWDashboardBodyWidgetPropertyMetric{
-			// TODO: set accountId
+			// NOTE: Widget level settings are not supported yet
 			AccountId: "",
-			// TODO: set annotations
+			// NOTE: annotations are not supported yet
 			Annotations: nil,
 			LiveData:    widget.LiveData,
 			Legend: &CWDashboardBodyWidgetPropertyMetricLegend{
