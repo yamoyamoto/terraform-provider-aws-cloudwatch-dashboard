@@ -39,7 +39,7 @@ type CWDashboardBodyWidgetPropertyMetric struct {
 	LiveData    bool                                            `json:"liveData,omitempty"`
 	Legend      *CWDashboardBodyWidgetPropertyMetricLegend      `json:"legend,omitempty"`
 	Metrics     [][]interface{}                                 `json:"metrics"`
-	Period      int                                             `json:"period,omitempty"`
+	Period      int32                                           `json:"period,omitempty"`
 	Region      string                                          `json:"region"`
 	Stat        string                                          `json:"stat,omitempty"`
 	Title       string                                          `json:"title,omitempty"`

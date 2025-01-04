@@ -41,8 +41,12 @@ func (p *cwDashboardProvider) DataSources(_ context.Context) []func() datasource
 	return []func() datasource.DataSource{
 		NewDashboardDataSource(),
 
+		// Metric
+		NewMetricDataSource(),
+
 		// Widgets
 		NewTextWidgetDataSource(),
+		NewGraphWidgetDataSource(),
 	}
 }
 
