@@ -224,12 +224,15 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 		Width:  widget.Width,
 		Height: widget.Height,
 		Properties: CWDashboardBodyWidgetPropertyMetric{
-			AccountId:   "",
+			// TODO: set accountId
+			AccountId: "",
+			// TODO: set annotations
 			Annotations: nil,
 			LiveData:    widget.LiveData,
 			Legend: &CWDashboardBodyWidgetPropertyMetricLegend{
 				Position: widget.LegendPosition,
 			},
+			// TODO: set metrics
 			Metrics:   nil,
 			Period:    widget.Period,
 			Region:    widget.Region,
@@ -239,8 +242,10 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 			Stacked:   widget.Stacked,
 			Sparkline: widget.Sparkline,
 			Timezone:  widget.Timezone,
-			YAxis:     nil,
-			Table:     nil,
+			// TODO: set yAxis
+			YAxis: nil,
+			// NOTE: unnecessary to set because it's not used in the graph widget
+			Table: nil,
 		},
 	}
 
