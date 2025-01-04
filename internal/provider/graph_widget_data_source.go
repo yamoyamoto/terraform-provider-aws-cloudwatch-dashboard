@@ -65,6 +65,10 @@ func (d *graphWidgetDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 				Optional:    true,
 				ElementType: types.StringType,
 			},
+			"sparkline": schema.BoolAttribute{
+				Description: "Whether the graph should be shown as a sparkline",
+				Optional:    true,
+			},
 			"stacked": schema.BoolAttribute{
 				Description: "Whether the graph should be shown as stacked lines",
 				Optional:    true,
@@ -75,6 +79,10 @@ func (d *graphWidgetDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 			},
 			"statistic": schema.StringAttribute{
 				Description: "The default statistic to be displayed for each metric",
+				Optional:    true,
+			},
+			"timezone": schema.StringAttribute{
+				Description: "The timezone to use for the widget",
 				Optional:    true,
 			},
 			"title": schema.StringAttribute{
@@ -110,9 +118,11 @@ type graphWidgetDataSourceModel struct {
 	Period         types.Int32    `tfsdk:"period"`
 	Region         types.String   `tfsdk:"region"`
 	Right          []types.String `tfsdk:"right"` // JSON string containing array of metrics
+	Sparkline      types.Bool     `tfsdk:"sparkline"`
 	Stacked        types.Bool     `tfsdk:"stacked"`
 	Start          types.String   `tfsdk:"start"`
 	Statistic      types.String   `tfsdk:"statistic"`
+	Timezone       types.String   `tfsdk:"timezone"`
 	Title          types.String   `tfsdk:"title"`
 	View           types.String   `tfsdk:"view"`
 	Width          types.Int32    `tfsdk:"width"`
@@ -129,9 +139,11 @@ type graphWidgetDataSourceSettings struct {
 	Period         int32                      `json:"period,omitempty"`
 	Region         string                     `json:"region,omitempty"`
 	Right          []metricDataSourceSettings `json:"right,omitempty"`
+	Sparkline      bool                       `json:"sparkline,omitempty"`
 	Stacked        bool                       `json:"stacked,omitempty"`
 	Start          string                     `json:"start,omitempty"`
 	Statistic      string                     `json:"statistic,omitempty"`
+	Timezone       string                     `json:"timezone,omitempty"`
 	Title          string                     `json:"title,omitempty"`
 	View           string                     `json:"view,omitempty"`
 	Width          int32                      `json:"width"`
@@ -177,9 +189,11 @@ func (d *graphWidgetDataSource) Read(ctx context.Context, req datasource.ReadReq
 		Period:         state.Period.ValueInt32(),
 		Region:         state.Region.ValueString(),
 		Right:          rightMetrics,
+		Sparkline:      state.Sparkline.ValueBool(),
 		Stacked:        state.Stacked.ValueBool(),
 		Start:          state.Start.ValueString(),
 		Statistic:      state.Statistic.ValueString(),
+		Timezone:       state.Timezone.ValueString(),
 		Title:          state.Title.ValueString(),
 		View:           state.View.ValueString(),
 		Width:          state.Width.ValueInt32(),
@@ -216,17 +230,17 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 			Legend: &CWDashboardBodyWidgetPropertyMetricLegend{
 				Position: widget.LegendPosition,
 			},
-			Metrics:     nil,
-			Period:      widget.Period,
-			Region:      widget.Region,
-			Stat:        widget.Statistic,
-			Title:       widget.Title,
-			View:        widget.View,
-			Stacked:     widget.Stacked,
-			Sparkline:   false,
-			Timezone:    "",
-			YAxis:       nil,
-			Table:       nil,
+			Metrics:   nil,
+			Period:    widget.Period,
+			Region:    widget.Region,
+			Stat:      widget.Statistic,
+			Title:     widget.Title,
+			View:      widget.View,
+			Stacked:   widget.Stacked,
+			Sparkline: widget.Sparkline,
+			Timezone:  widget.Timezone,
+			YAxis:     nil,
+			Table:     nil,
 		},
 	}
 
