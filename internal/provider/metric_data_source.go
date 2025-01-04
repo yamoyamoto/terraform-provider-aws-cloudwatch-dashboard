@@ -104,10 +104,6 @@ type metricDataSourceSettings struct {
 	Unit          string            `json:"unit,omitempty"`
 }
 
-const (
-	typeMetric = "metric"
-)
-
 func (d *metricDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var state metricDataSourceModel
 
