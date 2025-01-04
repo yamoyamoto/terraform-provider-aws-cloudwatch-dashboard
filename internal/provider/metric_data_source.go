@@ -51,7 +51,7 @@ func (d *metricDataSource) Schema(_ context.Context, _ datasource.SchemaRequest,
 				Description: "Label for this metric when added to a Graph in a Dashboard",
 				Optional:    true,
 			},
-			"period": schema.StringAttribute{
+			"period": schema.Int32Attribute{
 				Description: "The period over which the specified statistic is applied",
 				Optional:    true,
 			},
@@ -83,7 +83,7 @@ type metricDataSourceModel struct {
 	Color         types.String `tfsdk:"color"`
 	DimensionsMap types.Map    `tfsdk:"dimensions_map"`
 	Label         types.String `tfsdk:"label"`
-	Period        types.String `tfsdk:"period"`
+	Period        types.Int32  `tfsdk:"period"`
 	Region        types.String `tfsdk:"region"`
 	Statistic     types.String `tfsdk:"statistic"`
 	Unit          types.String `tfsdk:"unit"`
@@ -98,7 +98,7 @@ type metricDataSourceSettings struct {
 	Color         string            `json:"color,omitempty"`
 	DimensionsMap map[string]string `json:"dimensionsMap,omitempty"`
 	Label         string            `json:"label,omitempty"`
-	Period        string            `json:"period,omitempty"`
+	Period        int32             `json:"period,omitempty"`
 	Region        string            `json:"region,omitempty"`
 	Statistic     string            `json:"statistic,omitempty"`
 	Unit          string            `json:"unit,omitempty"`
@@ -130,7 +130,7 @@ func (d *metricDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		Color:         state.Color.ValueString(),
 		DimensionsMap: dimensionsMap,
 		Label:         state.Label.ValueString(),
-		Period:        state.Period.ValueString(),
+		Period:        state.Period.ValueInt32(),
 		Region:        state.Region.ValueString(),
 		Statistic:     state.Statistic.ValueString(),
 		Unit:          state.Unit.ValueString(),
