@@ -147,27 +147,20 @@ type CWDashboardBodyWidgetPropertyExplorer struct {
 //     Title   string   `json:"title,omitempty"`
 // }
 
-func buildDashboardBodyJson(ctx context.Context, state dashboardDataSourceModel, rawWidgets []map[string]interface{}) (string, error) {
+func buildDashboardBodyJson(ctx context.Context, state dashboardDataSourceModel, rawWidgets []interface{}) (string, error) {
 	widgets := make([]CWDashboardBodyWidget, 0)
 	var currentPosition *widgetPosition
 	for _, rawWidget := range rawWidgets {
-		widgetType, ok := rawWidget["type"].(string)
-		if !ok {
-			return "", fmt.Errorf("missing widget type")
-		}
-
-		switch widgetType {
-		case "text":
-			widget, err := parseCWDashboardBodyWidgetText(ctx, rawWidget, currentPosition)
+		switch w := rawWidget.(type) {
+		case textWidgetDataSourceSettings:
+			widget, err := w.ToCWDashboardBodyWidget(ctx, rawWidget.(textWidgetDataSourceSettings), currentPosition)
 			if err != nil {
 				return "", fmt.Errorf("failed to parse text widget: %w", err)
 			}
 			currentPosition = &widgetPosition{X: widget.X, Y: widget.Y}
-
 			widgets = append(widgets, widget)
-
 		default:
-			return "", fmt.Errorf("unsupported widget type: %s", widgetType)
+			return "", fmt.Errorf("unsupported widget type")
 		}
 	}
 

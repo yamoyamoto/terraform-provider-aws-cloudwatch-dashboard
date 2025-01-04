@@ -8,10 +8,10 @@ import (
 	"github.com/tj/assert"
 )
 
-func TestParseCWDashboardBodyWidgetText(t *testing.T) {
+func TestTextWidgetDataSourceSettingsToCWDashboardBodyWidget(t *testing.T) {
 	type testCase struct {
 		name                 string
-		input                map[string]interface{}
+		widget               textWidgetDataSourceSettings
 		beforeWidgetPosition *widgetPosition
 		expected             CWDashboardBodyWidget
 	}
@@ -19,11 +19,11 @@ func TestParseCWDashboardBodyWidgetText(t *testing.T) {
 	tests := []testCase{
 		{
 			name: "should successfully parse when all fields are specified",
-			input: map[string]interface{}{
-				"width":      float64(8),
-				"height":     float64(6),
-				"markdown":   "# Test Header",
-				"background": "#ffffff",
+			widget: textWidgetDataSourceSettings{
+				Width:      8,
+				Height:     6,
+				Markdown:   "# Test Header",
+				Background: "#ffffff",
 			},
 			beforeWidgetPosition: &widgetPosition{X: 0, Y: 0},
 			expected: CWDashboardBodyWidget{
@@ -40,10 +40,10 @@ func TestParseCWDashboardBodyWidgetText(t *testing.T) {
 		},
 		{
 			name: "should parse with default values when optional fields are omitted",
-			input: map[string]interface{}{
-				"width":    float64(8),
-				"height":   float64(6),
-				"markdown": "# Test Header",
+			widget: textWidgetDataSourceSettings{
+				Width:    8,
+				Height:   6,
+				Markdown: "# Test Header",
 			},
 			beforeWidgetPosition: &widgetPosition{X: 8, Y: 0},
 			expected: CWDashboardBodyWidget{
@@ -59,10 +59,10 @@ func TestParseCWDashboardBodyWidgetText(t *testing.T) {
 		},
 		{
 			name: "should start from origin when beforeWidgetPosition is nil",
-			input: map[string]interface{}{
-				"width":    float64(8),
-				"height":   float64(6),
-				"markdown": "# Test Header",
+			widget: textWidgetDataSourceSettings{
+				Width:    8,
+				Height:   6,
+				Markdown: "# Test Header",
 			},
 			beforeWidgetPosition: nil,
 			expected: CWDashboardBodyWidget{
@@ -78,10 +78,10 @@ func TestParseCWDashboardBodyWidgetText(t *testing.T) {
 		},
 		{
 			name: "should move to next row when exceeding max width",
-			input: map[string]interface{}{
-				"width":    float64(8),
-				"height":   float64(6),
-				"markdown": "# Test Header",
+			widget: textWidgetDataSourceSettings{
+				Width:    8,
+				Height:   6,
+				Markdown: "# Test Header",
 			},
 			beforeWidgetPosition: &widgetPosition{X: 20, Y: 0},
 			expected: CWDashboardBodyWidget{
@@ -96,12 +96,11 @@ func TestParseCWDashboardBodyWidgetText(t *testing.T) {
 			},
 		},
 		{
-			name: "should ignore fields with incorrect types during parsing",
-			input: map[string]interface{}{
-				"width":      float64(8),
-				"height":     float64(6),
-				"markdown":   "# Test Header",
-				"background": 123,
+			name: "should parse with empty background",
+			widget: textWidgetDataSourceSettings{
+				Width:    8,
+				Height:   6,
+				Markdown: "# Test Header",
 			},
 			beforeWidgetPosition: &widgetPosition{X: 0, Y: 6},
 			expected: CWDashboardBodyWidget{
@@ -124,11 +123,10 @@ func TestParseCWDashboardBodyWidgetText(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			actual, err := parseCWDashboardBodyWidgetText(ctx, tc.input, tc.beforeWidgetPosition)
+			actual, err := tc.widget.ToCWDashboardBodyWidget(ctx, tc.widget, tc.beforeWidgetPosition)
 			require.NoError(t, err)
 
 			assert.Equal(t, "text", actual.Type)
-
 			assert.Equal(t, tc.expected.X, actual.X)
 			assert.Equal(t, tc.expected.Y, actual.Y)
 			assert.Equal(t, tc.expected.Width, actual.Width)

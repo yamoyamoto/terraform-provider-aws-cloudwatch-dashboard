@@ -3,7 +3,9 @@ package provider
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -72,26 +74,11 @@ func (d *dashboardDataSource) Read(ctx context.Context, req datasource.ReadReque
 		return
 	}
 
-	widgets := []map[string]interface{}{}
-	for _, elem := range state.Widgets.Elements() {
-		var intermediateStr string
-		if err := json.Unmarshal([]byte(elem.String()), &intermediateStr); err != nil {
-			resp.Diagnostics.AddError("failed to unmarshal widget json", err.Error())
-			return
-		}
-
-		widget := map[string]interface{}{}
-		if err := json.Unmarshal([]byte(intermediateStr), &widget); err != nil {
-			resp.Diagnostics.AddError("failed to unmarshal widget json", err.Error())
-			return
-		}
-
-		widgets = append(widgets, widget)
+	widgets, err := d.parseToWidgetSettings(ctx, state.Widgets.Elements())
+	if err != nil {
+		resp.Diagnostics.AddError("failed to parse widgets", err.Error())
+		return
 	}
-
-	tflog.Info(ctx, "widgets!!!!", map[string]interface{}{
-		"widgets": widgets,
-	})
 
 	dashboardJson, err := buildDashboardBodyJson(ctx, state, widgets)
 	if err != nil {
@@ -99,7 +86,7 @@ func (d *dashboardDataSource) Read(ctx context.Context, req datasource.ReadReque
 		return
 	}
 
-	tflog.Info(ctx, "dashboard json", map[string]interface{}{
+	tflog.Info(ctx, "built dashboard json", map[string]interface{}{
 		"dashboard_json": dashboardJson,
 	})
 
@@ -110,4 +97,45 @@ func (d *dashboardDataSource) Read(ctx context.Context, req datasource.ReadReque
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+func (d *dashboardDataSource) parseToWidgetSettings(ctx context.Context, elements []attr.Value) ([]interface{}, error) {
+	widgets := make([]interface{}, 0)
+	var currentPosition *widgetPosition
+	for _, elem := range elements {
+		// NOTE: Unmarshal twice because of double escaping by Terraform
+		var escaped string
+		if err := json.Unmarshal([]byte(elem.String()), &escaped); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal widget json: %w", err)
+		}
+
+		w := map[string]interface{}{}
+		if err := json.Unmarshal([]byte(escaped), &w); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal widget json: %w", err)
+		}
+
+		widgetType, ok := w["type"].(string)
+		if !ok {
+			return nil, fmt.Errorf("missing widget type")
+		}
+
+		switch widgetType {
+		case "text":
+			var w textWidgetDataSourceSettings
+			if err := json.Unmarshal([]byte(escaped), &w); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal text widget json: %w", err)
+			}
+			widget, err := w.ToCWDashboardBodyWidget(ctx, w, currentPosition)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse text widget: %w", err)
+			}
+			currentPosition = &widgetPosition{X: widget.X, Y: widget.Y}
+			widgets = append(widgets, w)
+		// TODO: support more widget types
+		default:
+			return nil, fmt.Errorf("unsupported widget type")
+		}
+	}
+
+	return widgets, nil
 }
