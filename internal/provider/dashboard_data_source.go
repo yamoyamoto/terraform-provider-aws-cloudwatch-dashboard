@@ -34,11 +34,11 @@ func (d *dashboardDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 		Attributes: map[string]schema.Attribute{
 			"start": schema.StringAttribute{
 				Description: "The start of the time range to use for each widget on the dashboard",
-				Required:    true,
+				Optional:    true,
 			},
 			"end": schema.StringAttribute{
 				Description: "The end of the time range to use for each widget on the dashboard when the dashboard loads",
-				Required:    true,
+				Optional:    true,
 			},
 			"period_override": schema.StringAttribute{
 				Description: "Use this field to specify the period for the graphs when the dashboard loads",
@@ -131,7 +131,17 @@ func (d *dashboardDataSource) parseToWidgetSettings(ctx context.Context, element
 			}
 			currentPosition = &widgetPosition{X: widget.X, Y: widget.Y}
 			widgets = append(widgets, w)
-		// TODO: support more widget types
+		case "graph":
+			var w graphWidgetDataSourceSettings
+			if err := json.Unmarshal([]byte(escaped), &w); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal graph widget json: %w", err)
+			}
+			widget, err := w.ToCWDashboardBodyWidget(ctx, w, currentPosition)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse graph widget: %w", err)
+			}
+			currentPosition = &widgetPosition{X: widget.X, Y: widget.Y}
+			widgets = append(widgets, w)
 		default:
 			return nil, fmt.Errorf("unsupported widget type")
 		}
