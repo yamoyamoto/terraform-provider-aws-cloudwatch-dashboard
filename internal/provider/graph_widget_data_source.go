@@ -337,7 +337,7 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 	}
 
 	cwWidget := CWDashboardBodyWidget{
-		Type:   "graph",
+		Type:   "metric",
 		Width:  widget.Width,
 		Height: widget.Height,
 		Properties: CWDashboardBodyWidgetPropertyMetric{
@@ -377,7 +377,7 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 
 // https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/CloudWatch-Dashboard-Body-Structure.html#CloudWatch-Dashboard-Properties-Metrics-Array-Format
 func buildMetricSettings(left bool, metricSettings metricDataSourceSettings) ([]interface{}, error) {
-	var settings []interface{}
+	settings := make([]interface{}, 0)
 
 	settings = append(settings, metricSettings.Namespace)
 	settings = append(settings, metricSettings.MetricName)
@@ -395,7 +395,7 @@ func buildMetricSettings(left bool, metricSettings metricDataSourceSettings) ([]
 	if metricSettings.Label != "" {
 		renderingProperties["label"] = metricSettings.Label
 	}
-	if metricSettings.Period != "" {
+	if metricSettings.Period != 0 {
 		renderingProperties["period"] = metricSettings.Period
 	}
 	if metricSettings.Statistic != "" {
