@@ -92,8 +92,6 @@ type metricDataSourceModel struct {
 }
 
 type metricDataSourceSettings struct {
-	Type string `json:"type"`
-
 	MetricName    string            `json:"metricName"`
 	Namespace     string            `json:"namespace"`
 	Account       string            `json:"account,omitempty"`
@@ -130,8 +128,6 @@ func (d *metricDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	}
 
 	settings := metricDataSourceSettings{
-		Type: typeMetric,
-
 		MetricName:    state.MetricName.ValueString(),
 		Namespace:     state.Namespace.ValueString(),
 		Account:       state.Account.ValueString(),
