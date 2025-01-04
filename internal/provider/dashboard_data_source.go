@@ -72,21 +72,36 @@ func (d *dashboardDataSource) Read(ctx context.Context, req datasource.ReadReque
 		return
 	}
 
-	widgets := []map[string]interface{}{}
+	widgets := make([]interface{}, 0)
 	for _, elem := range state.Widgets.Elements() {
-		var intermediateStr string
-		if err := json.Unmarshal([]byte(elem.String()), &intermediateStr); err != nil {
+		// NOTE: Unmarshal twice because of double escaping by Terraform
+		var escaped string
+		if err := json.Unmarshal([]byte(elem.String()), &escaped); err != nil {
 			resp.Diagnostics.AddError("failed to unmarshal widget json", err.Error())
 			return
 		}
 
-		widget := map[string]interface{}{}
-		if err := json.Unmarshal([]byte(intermediateStr), &widget); err != nil {
+		w := map[string]interface{}{}
+		if err := json.Unmarshal([]byte(escaped), &w); err != nil {
 			resp.Diagnostics.AddError("failed to unmarshal widget json", err.Error())
 			return
 		}
 
-		widgets = append(widgets, widget)
+		widgetType, ok := w["type"].(string)
+		if !ok {
+			resp.Diagnostics.AddError("missing widget type", "")
+			return
+		}
+
+		switch widgetType {
+		case "text":
+			var w textWidgetDataSourceSettings
+			if err := json.Unmarshal([]byte(escaped), &w); err != nil {
+				resp.Diagnostics.AddError("failed to unmarshal text widget json", err.Error())
+				return
+			}
+			widgets = append(widgets, w)
+		}
 	}
 
 	dashboardJson, err := buildDashboardBodyJson(ctx, state, widgets)

@@ -111,37 +111,20 @@ func (d *textWidgetDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	}
 }
 
-func parseCWDashboardBodyWidgetText(ctx context.Context, widget map[string]interface{}, beforeWidgetPosition *widgetPosition) (CWDashboardBodyWidget, error) {
+func (w textWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Context, widget textWidgetDataSourceSettings, beforeWidgetPosition *widgetPosition) (CWDashboardBodyWidget, error) {
 	cwWidget := CWDashboardBodyWidget{
-		Type: "text",
-	}
-
-	width, ok := widget["width"].(float64)
-	if ok {
-		cwWidget.Width = int32(width)
-	}
-
-	height, ok := widget["height"].(float64)
-	if ok {
-		cwWidget.Height = int32(height)
+		Type:   "text",
+		Width:  widget.Width,
+		Height: widget.Height,
+		Properties: CWDashboardBodyWidgetPropertyText{
+			Markdown:   widget.Markdown,
+			Background: widget.Background,
+		},
 	}
 
 	position := calculatePosition(widgetSize{Width: cwWidget.Width, Height: cwWidget.Height}, beforeWidgetPosition)
 	cwWidget.X = position.X
 	cwWidget.Y = position.Y
-
-	property := CWDashboardBodyWidgetPropertyText{}
-	mkDown, ok := widget["markdown"].(string)
-	if ok {
-		property.Markdown = mkDown
-	}
-
-	background, ok := widget["background"].(string)
-	if ok {
-		property.Background = background
-	}
-
-	cwWidget.Properties = property
 
 	tflog.Debug(ctx, "built text widget", map[string]interface{}{
 		"widget": cwWidget,
