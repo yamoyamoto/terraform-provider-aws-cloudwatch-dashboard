@@ -2,10 +2,12 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 type metricDataSource struct {
@@ -65,6 +67,11 @@ func (d *metricDataSource) Schema(_ context.Context, _ datasource.SchemaRequest,
 				Description: "Unit used to filter the metric stream",
 				Optional:    true,
 			},
+
+			"json": schema.StringAttribute{
+				Description: "The settings of the metric",
+				Computed:    true,
+			},
 		},
 	}
 }
@@ -80,11 +87,11 @@ type metricDataSourceModel struct {
 	Region        types.String `tfsdk:"region"`
 	Statistic     types.String `tfsdk:"statistic"`
 	Unit          types.String `tfsdk:"unit"`
+
+	Json types.String `tfsdk:"json"`
 }
 
 type metricDataSourceSettings struct {
-	Type string `json:"type"`
-
 	MetricName    string            `json:"metricName"`
 	Namespace     string            `json:"namespace"`
 	Account       string            `json:"account,omitempty"`
@@ -97,10 +104,6 @@ type metricDataSourceSettings struct {
 	Unit          string            `json:"unit,omitempty"`
 }
 
-const (
-	typeMetric = "metric"
-)
-
 func (d *metricDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var state metricDataSourceModel
 
@@ -110,13 +113,17 @@ func (d *metricDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	}
 
 	dimensionsMap := make(map[string]string)
-	for k, v := range state.DimensionsMap.Elements() {
-		dimensionsMap[k] = v.String()
+	for i, v := range state.DimensionsMap.Elements() {
+		switch typedV := v.(type) {
+		case types.String:
+			dimensionsMap[i] = typedV.ValueString()
+		default:
+			resp.Diagnostics.AddError("invalid type for dimensions map", "expected string")
+			return
+		}
 	}
 
 	settings := metricDataSourceSettings{
-		Type: typeMetric,
-
 		MetricName:    state.MetricName.ValueString(),
 		Namespace:     state.Namespace.ValueString(),
 		Account:       state.Account.ValueString(),
@@ -129,5 +136,16 @@ func (d *metricDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		Unit:          state.Unit.ValueString(),
 	}
 
-	resp.State.Set(ctx, settings)
+	b, err := json.Marshal(settings)
+	if err != nil {
+		resp.Diagnostics.AddError("failed to marshal metric settings", err.Error())
+		return
+	}
+	tflog.Info(ctx, "metric settings", map[string]interface{}{
+		"settings": string(b),
+	})
+
+	state.Json = types.StringValue(string(b))
+
+	resp.State.Set(ctx, state)
 }
