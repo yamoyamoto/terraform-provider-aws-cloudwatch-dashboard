@@ -204,4 +204,39 @@ func (d *graphWidgetDataSource) Read(ctx context.Context, req datasource.ReadReq
 	}
 }
 
-// TODO: add ToCWDashboardBodyWidget method
+func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Context, widget graphWidgetDataSourceSettings, beforeWidgetPosition *widgetPosition) (CWDashboardBodyWidget, error) {
+	cwWidget := CWDashboardBodyWidget{
+		Type:   "graph",
+		Width:  widget.Width,
+		Height: widget.Height,
+		Properties: CWDashboardBodyWidgetPropertyMetric{
+			AccountId:   "",
+			Annotations: nil,
+			LiveData:    widget.LiveData,
+			Legend: &CWDashboardBodyWidgetPropertyMetricLegend{
+				Position: widget.LegendPosition,
+			},
+			Metrics:     nil,
+			Period:      widget.Period,
+			Region:      widget.Region,
+			Stat:        widget.Statistic,
+			Title:       widget.Title,
+			View:        widget.View,
+			Stacked:     widget.Stacked,
+			Sparkline:   false,
+			Timezone:    "",
+			YAxis:       nil,
+			Table:       nil,
+		},
+	}
+
+	position := calculatePosition(widgetSize{Width: cwWidget.Width, Height: cwWidget.Height}, beforeWidgetPosition)
+	cwWidget.X = position.X
+	cwWidget.Y = position.Y
+
+	tflog.Debug(ctx, "built graph widget", map[string]interface{}{
+		"widget": cwWidget,
+	})
+
+	return cwWidget, nil
+}

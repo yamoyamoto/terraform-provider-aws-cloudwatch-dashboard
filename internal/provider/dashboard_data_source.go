@@ -131,7 +131,17 @@ func (d *dashboardDataSource) parseToWidgetSettings(ctx context.Context, element
 			}
 			currentPosition = &widgetPosition{X: widget.X, Y: widget.Y}
 			widgets = append(widgets, w)
-		// TODO: support more widget types
+		case "graph":
+			var w graphWidgetDataSourceSettings
+			if err := json.Unmarshal([]byte(escaped), &w); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal graph widget json: %w", err)
+			}
+			widget, err := w.ToCWDashboardBodyWidget(ctx, w, currentPosition)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse graph widget: %w", err)
+			}
+			currentPosition = &widgetPosition{X: widget.X, Y: widget.Y}
+			widgets = append(widgets, w)
 		default:
 			return nil, fmt.Errorf("unsupported widget type")
 		}
