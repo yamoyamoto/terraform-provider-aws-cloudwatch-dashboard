@@ -34,11 +34,11 @@ func (d *dashboardDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 		Attributes: map[string]schema.Attribute{
 			"start": schema.StringAttribute{
 				Description: "The start of the time range to use for each widget on the dashboard",
-				Required:    true,
+				Optional:    true,
 			},
 			"end": schema.StringAttribute{
 				Description: "The end of the time range to use for each widget on the dashboard when the dashboard loads",
-				Required:    true,
+				Optional:    true,
 			},
 			"period_override": schema.StringAttribute{
 				Description: "Use this field to specify the period for the graphs when the dashboard loads",
