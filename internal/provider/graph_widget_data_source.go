@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -298,6 +299,43 @@ func (d *graphWidgetDataSource) Read(ctx context.Context, req datasource.ReadReq
 }
 
 func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Context, widget graphWidgetDataSourceSettings, beforeWidgetPosition *widgetPosition) (CWDashboardBodyWidget, error) {
+	var leftYAxis *CWDashboardBodyWidgetPropertyMetricYAxisSide
+	if widget.LeftYAxis != nil {
+		leftYAxis = &CWDashboardBodyWidgetPropertyMetricYAxisSide{
+			Label:     widget.LeftYAxis.Label,
+			Max:       widget.LeftYAxis.Max,
+			Min:       widget.LeftYAxis.Min,
+			ShowUnits: widget.LeftYAxis.ShowUnits,
+		}
+	}
+
+	var rightYAxis *CWDashboardBodyWidgetPropertyMetricYAxisSide
+	if widget.RightYAxis != nil {
+		rightYAxis = &CWDashboardBodyWidgetPropertyMetricYAxisSide{
+			Label:     widget.RightYAxis.Label,
+			Max:       widget.RightYAxis.Max,
+			Min:       widget.RightYAxis.Min,
+			ShowUnits: widget.RightYAxis.ShowUnits,
+		}
+	}
+
+	var yAxis *CWDashboardBodyWidgetPropertyMetricYAxis
+	if leftYAxis != nil || rightYAxis != nil {
+		yAxis = &CWDashboardBodyWidgetPropertyMetricYAxis{
+			Left:  leftYAxis,
+			Right: rightYAxis,
+		}
+	}
+
+	metrics := make([][]interface{}, 0)
+	for _, metric := range widget.Left {
+		settings, err := buildMetricSettings(true, metric)
+		if err != nil {
+			return CWDashboardBodyWidget{}, fmt.Errorf("failed to build metric settings: %w", err)
+		}
+		metrics = append(metrics, settings)
+	}
+
 	cwWidget := CWDashboardBodyWidget{
 		Type:   "graph",
 		Width:  widget.Width,
@@ -311,8 +349,7 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 			Legend: &CWDashboardBodyWidgetPropertyMetricLegend{
 				Position: widget.LegendPosition,
 			},
-			// TODO: set metrics
-			Metrics:   nil,
+			Metrics:   metrics,
 			Period:    widget.Period,
 			Region:    widget.Region,
 			Stat:      widget.Statistic,
@@ -321,8 +358,7 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 			Stacked:   widget.Stacked,
 			Sparkline: widget.Sparkline,
 			Timezone:  widget.Timezone,
-			// TODO: set yAxis
-			YAxis: nil,
+			YAxis:     yAxis,
 			// NOTE: unnecessary to set because it's not used in the graph widget
 			Table: nil,
 		},
@@ -337,4 +373,42 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 	})
 
 	return cwWidget, nil
+}
+
+// https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/CloudWatch-Dashboard-Body-Structure.html#CloudWatch-Dashboard-Properties-Metrics-Array-Format
+func buildMetricSettings(left bool, metricSettings metricDataSourceSettings) ([]interface{}, error) {
+	var settings []interface{}
+
+	settings = append(settings, metricSettings.Namespace)
+	settings = append(settings, metricSettings.MetricName)
+
+	for dimKey, dimVal := range metricSettings.DimensionsMap {
+		settings = append(settings, dimKey)
+		settings = append(settings, dimVal)
+	}
+
+	renderingProperties := map[string]interface{}{}
+
+	if metricSettings.Color != "" {
+		renderingProperties["color"] = metricSettings.Color
+	}
+	if metricSettings.Label != "" {
+		renderingProperties["label"] = metricSettings.Label
+	}
+	if metricSettings.Period != "" {
+		renderingProperties["period"] = metricSettings.Period
+	}
+	if metricSettings.Statistic != "" {
+		renderingProperties["stat"] = metricSettings.Statistic
+	}
+
+	if left {
+		renderingProperties["yAxis"] = "left"
+	} else {
+		renderingProperties["yAxis"] = "right"
+	}
+
+	settings = append(settings, renderingProperties)
+
+	return settings, nil
 }
