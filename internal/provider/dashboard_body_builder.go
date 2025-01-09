@@ -153,9 +153,16 @@ func buildDashboardBodyJson(ctx context.Context, state dashboardDataSourceModel,
 	for _, rawWidget := range rawWidgets {
 		switch w := rawWidget.(type) {
 		case textWidgetDataSourceSettings:
-			widget, err := w.ToCWDashboardBodyWidget(ctx, rawWidget.(textWidgetDataSourceSettings), currentPosition)
+			widget, err := w.ToCWDashboardBodyWidget(ctx, w, currentPosition)
 			if err != nil {
 				return "", fmt.Errorf("failed to parse text widget: %w", err)
+			}
+			currentPosition = &widgetPosition{X: widget.X, Y: widget.Y}
+			widgets = append(widgets, widget)
+		case graphWidgetDataSourceSettings:
+			widget, err := w.ToCWDashboardBodyWidget(ctx, w, currentPosition)
+			if err != nil {
+				return "", fmt.Errorf("failed to parse graph widget: %w", err)
 			}
 			currentPosition = &widgetPosition{X: widget.X, Y: widget.Y}
 			widgets = append(widgets, widget)
