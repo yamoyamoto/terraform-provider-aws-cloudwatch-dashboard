@@ -41,14 +41,14 @@ type CWDashboardBodyWidgetPropertyMetric struct {
 	Metrics     [][]interface{}                                 `json:"metrics"`
 	Period      int32                                           `json:"period,omitempty"`
 	Region      string                                          `json:"region"`
+	Sparkline   bool                                            `json:"sparkline,omitempty"`
+	Stacked     bool                                            `json:"stacked,omitempty"`
 	Stat        string                                          `json:"stat,omitempty"`
+	Table       *CWDashboardBodyWidgetPropertyMetricTable       `json:"table,omitempty"`
+	Timezone    string                                          `json:"timezone,omitempty"`
 	Title       string                                          `json:"title,omitempty"`
 	View        string                                          `json:"view,omitempty"`
-	Stacked     bool                                            `json:"stacked,omitempty"`
-	Sparkline   bool                                            `json:"sparkline,omitempty"`
-	Timezone    string                                          `json:"timezone,omitempty"`
 	YAxis       *CWDashboardBodyWidgetPropertyMetricYAxis       `json:"yAxis,omitempty"`
-	Table       *CWDashboardBodyWidgetPropertyMetricTable       `json:"table,omitempty"`
 }
 
 type CWDashboardBodyWidgetPropertyMetricAnnotations struct {
