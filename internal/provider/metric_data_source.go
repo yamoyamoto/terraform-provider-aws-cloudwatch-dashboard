@@ -92,6 +92,7 @@ type metricDataSourceModel struct {
 }
 
 type metricDataSourceSettings struct {
+	Type          string            `json:"type"`
 	MetricName    string            `json:"metricName"`
 	Namespace     string            `json:"namespace"`
 	Account       string            `json:"account,omitempty"`
@@ -102,6 +103,14 @@ type metricDataSourceSettings struct {
 	Region        string            `json:"region,omitempty"`
 	Statistic     string            `json:"statistic,omitempty"`
 	Unit          string            `json:"unit,omitempty"`
+}
+
+const (
+	typeNameOfMetricDataSource = "metric"
+)
+
+func (s *metricDataSourceSettings) GetType() string {
+	return typeNameOfMetricDataSource
 }
 
 func (d *metricDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -124,6 +133,7 @@ func (d *metricDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	}
 
 	settings := metricDataSourceSettings{
+		Type:          typeNameOfMetricDataSource,
 		MetricName:    state.MetricName.ValueString(),
 		Namespace:     state.Namespace.ValueString(),
 		Account:       state.Account.ValueString(),
@@ -148,4 +158,46 @@ func (d *metricDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	state.Json = types.StringValue(string(b))
 
 	resp.State.Set(ctx, state)
+}
+
+// https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/CloudWatch-Dashboard-Body-Structure.html#CloudWatch-Dashboard-Properties-Metrics-Array-Format
+func (s *metricDataSourceSettings) buildMetricWidgetMetricsSettings(left bool, extra map[string]interface{}) ([]interface{}, error) {
+	settings := make([]interface{}, 0)
+
+	settings = append(settings, s.Namespace)
+	settings = append(settings, s.MetricName)
+
+	for dimKey, dimVal := range s.DimensionsMap {
+		settings = append(settings, dimKey)
+		settings = append(settings, dimVal)
+	}
+
+	renderingProperties := map[string]interface{}{}
+
+	if s.Color != "" {
+		renderingProperties["color"] = s.Color
+	}
+	if s.Label != "" {
+		renderingProperties["label"] = s.Label
+	}
+	if s.Period != 0 {
+		renderingProperties["period"] = s.Period
+	}
+	if s.Statistic != "" {
+		renderingProperties["stat"] = s.Statistic
+	}
+
+	if left {
+		renderingProperties["yAxis"] = "left"
+	} else {
+		renderingProperties["yAxis"] = "right"
+	}
+
+	for k, v := range extra {
+		renderingProperties[k] = v
+	}
+
+	settings = append(settings, renderingProperties)
+
+	return settings, nil
 }

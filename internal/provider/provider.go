@@ -43,6 +43,7 @@ func (p *cwDashboardProvider) DataSources(_ context.Context) []func() datasource
 
 		// Metric
 		NewMetricDataSource(),
+		NewMetricExpressionDataSource(),
 
 		// Widgets
 		NewTextWidgetDataSource(),
