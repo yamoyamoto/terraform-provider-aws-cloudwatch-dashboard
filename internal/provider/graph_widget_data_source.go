@@ -32,10 +32,6 @@ func (d *graphWidgetDataSource) Metadata(_ context.Context, req datasource.Metad
 func (d *graphWidgetDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"end": schema.StringAttribute{
-				Description: "The end of the time range to use for each widget independently from those of the dashboard",
-				Optional:    true,
-			},
 			"height": schema.Int32Attribute{
 				Description: "Height of the widget",
 				Required:    true,
@@ -158,7 +154,6 @@ type graphWidgetYAxisDataSourceModel struct {
 }
 
 type graphWidgetDataSourceModel struct {
-	End            types.String                     `tfsdk:"end"`
 	Height         types.Int32                      `tfsdk:"height"`
 	Left           []types.String                   `tfsdk:"left"` // JSON string containing array of metrics
 	LeftYAxis      *graphWidgetYAxisDataSourceModel `tfsdk:"left_y_axis"`
@@ -187,7 +182,6 @@ type graphWidgetYAxisDataSourceSettings struct {
 }
 
 type graphWidgetDataSourceSettings struct {
-	End            string                              `json:"end,omitempty"`
 	Height         int32                               `json:"height"`
 	Left           []metricDataSourceSettings          `json:"left,omitempty"`
 	LeftYAxis      *graphWidgetYAxisDataSourceSettings `json:"left_y_axis,omitempty"`
@@ -238,7 +232,6 @@ func (d *graphWidgetDataSource) Read(ctx context.Context, req datasource.ReadReq
 	}
 
 	settings := graphWidgetDataSourceSettings{
-		End:            state.End.ValueString(),
 		Height:         state.Height.ValueInt32(),
 		Left:           leftMetrics,
 		LegendPosition: state.LegendPosition.ValueString(),
