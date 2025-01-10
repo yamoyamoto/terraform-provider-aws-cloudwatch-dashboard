@@ -200,6 +200,111 @@ type graphWidgetDataSourceSettings struct {
 	Width          int32                               `json:"width"`
 }
 
+func (s *graphWidgetDataSourceSettings) UnmarshalJSON(data []byte) error {
+	var intermediate struct {
+		Type           string                              `json:"type"`
+		Height         int32                               `json:"height"`
+		LeftYAxis      *graphWidgetYAxisDataSourceSettings `json:"left_y_axis,omitempty"`
+		LegendPosition string                              `json:"legend_position,omitempty"`
+		LiveData       bool                                `json:"live_data,omitempty"`
+		Period         int32                               `json:"period,omitempty"`
+		Region         string                              `json:"region,omitempty"`
+		RightYAxis     *graphWidgetYAxisDataSourceSettings `json:"right_y_axis,omitempty"`
+		Sparkline      bool                                `json:"sparkline,omitempty"`
+		Stacked        bool                                `json:"stacked,omitempty"`
+		Statistic      string                              `json:"statistic,omitempty"`
+		Timezone       string                              `json:"timezone,omitempty"`
+		Title          string                              `json:"title,omitempty"`
+		View           string                              `json:"view,omitempty"`
+		Width          int32                               `json:"width"`
+		// Left/Right has multiple types, so we need to unmarshal them separately
+		Left  []interface{} `json:"left"`
+		Right []interface{} `json:"right"`
+	}
+
+	if err := json.Unmarshal(data, &intermediate); err != nil {
+		return fmt.Errorf("failed to unmarshal: %w", err)
+	}
+
+	s.Type = intermediate.Type
+	s.Height = intermediate.Height
+	s.LeftYAxis = intermediate.LeftYAxis
+	s.LegendPosition = intermediate.LegendPosition
+	s.LiveData = intermediate.LiveData
+	s.Period = intermediate.Period
+	s.Region = intermediate.Region
+	s.RightYAxis = intermediate.RightYAxis
+	s.Sparkline = intermediate.Sparkline
+	s.Stacked = intermediate.Stacked
+	s.Statistic = intermediate.Statistic
+	s.Timezone = intermediate.Timezone
+	s.Title = intermediate.Title
+	s.View = intermediate.View
+	s.Width = intermediate.Width
+
+	// Process left and right metrics separately
+	left, err := processMetrics(intermediate.Left)
+	if err != nil {
+		return err
+	}
+	right, err := processMetrics(intermediate.Right)
+	if err != nil {
+		return err
+	}
+
+	s.Left = left
+	s.Right = right
+
+	return nil
+}
+
+func processMetrics(metrics []interface{}) ([]IMetricSettings, error) {
+	var result []IMetricSettings
+
+	for _, m := range metrics {
+		m2, ok := m.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("invalid metric")
+		}
+
+		t, ok := m2["type"].(string)
+		if !ok {
+			return nil, fmt.Errorf("missing metric type")
+		}
+
+		switch t {
+		case typeNameOfMetricDataSource:
+			b, err := json.Marshal(m)
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal metric settings: %w", err)
+			}
+
+			m := &metricDataSourceSettings{}
+			if err := json.Unmarshal(b, m); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal metric settings: %w", err)
+			}
+			result = append(result, m)
+
+		case typeNameOfMetricExpressionDataSource:
+			b, err := json.Marshal(m)
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal metric expression settings: %w", err)
+			}
+
+			m := &metricExpressionDataSourceSettings{}
+			if err := json.Unmarshal(b, m); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal metric expression settings: %w", err)
+			}
+			result = append(result, m)
+
+		default:
+			return nil, fmt.Errorf("unsupported metric type")
+		}
+	}
+
+	return result, nil
+}
+
 func (d *graphWidgetDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var state graphWidgetDataSourceModel
 
@@ -211,12 +316,22 @@ func (d *graphWidgetDataSource) Read(ctx context.Context, req datasource.ReadReq
 	// Parse left metrics from JSON
 	leftMetrics := make([]IMetricSettings, len(state.Left))
 	for i, metricJson := range state.Left {
-		var metric *metricDataSourceSettings
+		metric := &metricDataSourceSettings{}
 		if err := json.Unmarshal([]byte(metricJson.ValueString()), &metric); err != nil {
 			resp.Diagnostics.AddError("failed to unmarshal left metric", err.Error())
 			return
 		}
-		leftMetrics[i] = metric
+
+		if metric.Type != typeNameOfMetricDataSource {
+			metric := &metricExpressionDataSourceSettings{}
+			if err := json.Unmarshal([]byte(metricJson.ValueString()), &metric); err != nil {
+				resp.Diagnostics.AddError("failed to unmarshal left metric", err.Error())
+				return
+			}
+			leftMetrics[i] = metric
+		} else {
+			leftMetrics[i] = metric
+		}
 	}
 
 	// Parse right metrics from JSON
@@ -227,7 +342,17 @@ func (d *graphWidgetDataSource) Read(ctx context.Context, req datasource.ReadReq
 			resp.Diagnostics.AddError("failed to unmarshal right metric", err.Error())
 			return
 		}
-		rightMetrics[i] = metric
+
+		if metric.Type != typeNameOfMetricDataSource {
+			metric := &metricExpressionDataSourceSettings{}
+			if err := json.Unmarshal([]byte(metricJson.ValueString()), &metric); err != nil {
+				resp.Diagnostics.AddError("failed to unmarshal right metric", err.Error())
+				return
+			}
+			rightMetrics[i] = metric
+		} else {
+			rightMetrics[i] = metric
+		}
 	}
 
 	settings := graphWidgetDataSourceSettings{
@@ -317,7 +442,7 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 	for _, metric := range w.Left {
 		switch m := metric.(type) {
 		case *metricDataSourceSettings:
-			settings, err := m.buildMetricWidgetMetricsSettings(true)
+			settings, err := m.buildMetricWidgetMetricsSettings(true, nil)
 			if err != nil {
 				return CWDashboardBodyWidget{}, fmt.Errorf("failed to build metric settings: %w", err)
 			}
@@ -337,7 +462,7 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 	for _, metric := range w.Right {
 		switch m := metric.(type) {
 		case *metricDataSourceSettings:
-			settings, err := m.buildMetricWidgetMetricsSettings(false)
+			settings, err := m.buildMetricWidgetMetricsSettings(false, nil)
 			if err != nil {
 				return CWDashboardBodyWidget{}, fmt.Errorf("failed to build metric settings: %w", err)
 			}

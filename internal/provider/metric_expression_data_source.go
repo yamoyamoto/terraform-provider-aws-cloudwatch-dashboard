@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -46,7 +47,7 @@ func (d *metricExpressionDataSource) Schema(_ context.Context, _ datasource.Sche
 				Description: "The period of the metric",
 				Required:    true,
 			},
-			"using_metrics": schema.ListAttribute{
+			"using_metrics": schema.MapAttribute{
 				Description: "The metrics used in the expression",
 				Required:    true,
 				ElementType: types.StringType,
@@ -60,20 +61,21 @@ func (d *metricExpressionDataSource) Schema(_ context.Context, _ datasource.Sche
 }
 
 type metricExpressionDataSourceModel struct {
-	Expression   types.String   `tfsdk:"expression"`
-	Color        types.String   `tfsdk:"color"`
-	Label        types.String   `tfsdk:"label"`
-	Period       types.Int32    `tfsdk:"period"`
-	UsingMetrics []types.String `tfsdk:"using_metrics"`
-	Json         types.String   `tfsdk:"json"`
+	Expression   types.String `tfsdk:"expression"`
+	Color        types.String `tfsdk:"color"`
+	Label        types.String `tfsdk:"label"`
+	Period       types.Int32  `tfsdk:"period"`
+	UsingMetrics types.Map    `tfsdk:"using_metrics"`
+	Json         types.String `tfsdk:"json"`
 }
 
 type metricExpressionDataSourceSettings struct {
-	Expression   string   `json:"expression"`
-	Color        string   `json:"color"`
-	Label        string   `json:"label"`
-	Period       int32    `json:"period"`
-	UsingMetrics []string `json:"using_metrics"`
+	Type         string            `json:"type"`
+	Expression   string            `json:"expression"`
+	Color        string            `json:"color"`
+	Label        string            `json:"label"`
+	Period       int32             `json:"period"`
+	UsingMetrics map[string]string `json:"using_metrics"`
 }
 
 const (
@@ -94,12 +96,19 @@ func (d *metricExpressionDataSource) Read(ctx context.Context, req datasource.Re
 
 	// TODO: metrics validation
 
-	usingMetrics := make([]string, 0, len(state.UsingMetrics))
-	for _, m := range state.UsingMetrics {
-		usingMetrics = append(usingMetrics, m.ValueString())
+	usingMetrics := make(map[string]string)
+	for k, v := range state.UsingMetrics.Elements() {
+		vs, ok := v.(types.String)
+		if !ok {
+			resp.Diagnostics.AddError("failed to convert using_metrics", "failed to convert using_metrics")
+			return
+		}
+
+		usingMetrics[k] = vs.ValueString()
 	}
 
 	settings := metricExpressionDataSourceSettings{
+		Type:         typeNameOfMetricExpressionDataSource,
 		Expression:   state.Expression.ValueString(),
 		Color:        state.Color.ValueString(),
 		Label:        state.Label.ValueString(),
@@ -125,13 +134,23 @@ func (d *metricExpressionDataSource) Read(ctx context.Context, req datasource.Re
 func (s *metricExpressionDataSourceSettings) buildMetricWidgetMetricSettingsList(left bool) ([][]interface{}, error) {
 	settings := make([][]interface{}, 0)
 
-	for _, usingMetric := range s.UsingMetrics {
+	// sort keys to make the order of metrics deterministic
+	keys := make([]string, 0, len(s.UsingMetrics))
+	for id := range s.UsingMetrics {
+		keys = append(keys, id)
+	}
+	sort.Strings(keys)
+
+	for _, id := range keys {
+		usingMetric := s.UsingMetrics[id]
 		var m metricDataSourceSettings
 		if err := json.Unmarshal([]byte(usingMetric), &m); err != nil {
 			return nil, err
 		}
 
-		ms, err := m.buildMetricWidgetMetricsSettings(left)
+		ms, err := m.buildMetricWidgetMetricsSettings(left, map[string]string{
+			"id": id,
+		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to build metric widget metric settings: %w", err)
 		}

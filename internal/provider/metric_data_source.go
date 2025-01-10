@@ -92,6 +92,7 @@ type metricDataSourceModel struct {
 }
 
 type metricDataSourceSettings struct {
+	Type          string            `json:"type"`
 	MetricName    string            `json:"metricName"`
 	Namespace     string            `json:"namespace"`
 	Account       string            `json:"account,omitempty"`
@@ -132,6 +133,7 @@ func (d *metricDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	}
 
 	settings := metricDataSourceSettings{
+		Type:          typeNameOfMetricDataSource,
 		MetricName:    state.MetricName.ValueString(),
 		Namespace:     state.Namespace.ValueString(),
 		Account:       state.Account.ValueString(),
@@ -159,7 +161,7 @@ func (d *metricDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 }
 
 // https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/CloudWatch-Dashboard-Body-Structure.html#CloudWatch-Dashboard-Properties-Metrics-Array-Format
-func (s *metricDataSourceSettings) buildMetricWidgetMetricsSettings(left bool) ([]interface{}, error) {
+func (s *metricDataSourceSettings) buildMetricWidgetMetricsSettings(left bool, extra map[string]string) ([]interface{}, error) {
 	settings := make([]interface{}, 0)
 
 	settings = append(settings, s.Namespace)
@@ -189,6 +191,10 @@ func (s *metricDataSourceSettings) buildMetricWidgetMetricsSettings(left bool) (
 		renderingProperties["yAxis"] = "left"
 	} else {
 		renderingProperties["yAxis"] = "right"
+	}
+
+	for k, v := range extra {
+		renderingProperties[k] = v
 	}
 
 	settings = append(settings, renderingProperties)
