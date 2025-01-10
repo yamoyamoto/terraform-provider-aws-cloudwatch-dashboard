@@ -161,7 +161,7 @@ func (d *metricDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 }
 
 // https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/CloudWatch-Dashboard-Body-Structure.html#CloudWatch-Dashboard-Properties-Metrics-Array-Format
-func (s *metricDataSourceSettings) buildMetricWidgetMetricsSettings(left bool, extra map[string]string) ([]interface{}, error) {
+func (s *metricDataSourceSettings) buildMetricWidgetMetricsSettings(left bool, extra map[string]interface{}) ([]interface{}, error) {
 	settings := make([]interface{}, 0)
 
 	settings = append(settings, s.Namespace)

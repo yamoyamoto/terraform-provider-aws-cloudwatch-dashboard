@@ -148,8 +148,9 @@ func (s *metricExpressionDataSourceSettings) buildMetricWidgetMetricSettingsList
 			return nil, err
 		}
 
-		ms, err := m.buildMetricWidgetMetricsSettings(left, map[string]string{
-			"id": id,
+		ms, err := m.buildMetricWidgetMetricsSettings(left, map[string]interface{}{
+			"id":      id,
+			"visible": false,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to build metric widget metric settings: %w", err)
