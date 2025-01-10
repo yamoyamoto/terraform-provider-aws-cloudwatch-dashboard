@@ -319,7 +319,7 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 		var err error
 		switch m := metric.(type) {
 		case *metricDataSourceSettings:
-			settings, err = buildMetricWidgetMetricsSettings(true, *m)
+			settings, err = m.buildMetricWidgetMetricsSettings(true)
 			if err != nil {
 				return CWDashboardBodyWidget{}, fmt.Errorf("failed to build metric settings: %w", err)
 			}
@@ -338,7 +338,7 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 		var err error
 		switch m := metric.(type) {
 		case *metricDataSourceSettings:
-			settings, err = buildMetricWidgetMetricsSettings(false, *m)
+			settings, err = m.buildMetricWidgetMetricsSettings(false)
 			if err != nil {
 				return CWDashboardBodyWidget{}, fmt.Errorf("failed to build metric settings: %w", err)
 			}
@@ -384,42 +384,4 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 	})
 
 	return cwWidget, nil
-}
-
-// https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/CloudWatch-Dashboard-Body-Structure.html#CloudWatch-Dashboard-Properties-Metrics-Array-Format
-func buildMetricWidgetMetricsSettings(left bool, metricSettings metricDataSourceSettings) ([]interface{}, error) {
-	settings := make([]interface{}, 0)
-
-	settings = append(settings, metricSettings.Namespace)
-	settings = append(settings, metricSettings.MetricName)
-
-	for dimKey, dimVal := range metricSettings.DimensionsMap {
-		settings = append(settings, dimKey)
-		settings = append(settings, dimVal)
-	}
-
-	renderingProperties := map[string]interface{}{}
-
-	if metricSettings.Color != "" {
-		renderingProperties["color"] = metricSettings.Color
-	}
-	if metricSettings.Label != "" {
-		renderingProperties["label"] = metricSettings.Label
-	}
-	if metricSettings.Period != 0 {
-		renderingProperties["period"] = metricSettings.Period
-	}
-	if metricSettings.Statistic != "" {
-		renderingProperties["stat"] = metricSettings.Statistic
-	}
-
-	if left {
-		renderingProperties["yAxis"] = "left"
-	} else {
-		renderingProperties["yAxis"] = "right"
-	}
-
-	settings = append(settings, renderingProperties)
-
-	return settings, nil
 }

@@ -157,3 +157,41 @@ func (d *metricDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 	resp.State.Set(ctx, state)
 }
+
+// https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/CloudWatch-Dashboard-Body-Structure.html#CloudWatch-Dashboard-Properties-Metrics-Array-Format
+func (s *metricDataSourceSettings) buildMetricWidgetMetricsSettings(left bool) ([]interface{}, error) {
+	settings := make([]interface{}, 0)
+
+	settings = append(settings, s.Namespace)
+	settings = append(settings, s.MetricName)
+
+	for dimKey, dimVal := range s.DimensionsMap {
+		settings = append(settings, dimKey)
+		settings = append(settings, dimVal)
+	}
+
+	renderingProperties := map[string]interface{}{}
+
+	if s.Color != "" {
+		renderingProperties["color"] = s.Color
+	}
+	if s.Label != "" {
+		renderingProperties["label"] = s.Label
+	}
+	if s.Period != 0 {
+		renderingProperties["period"] = s.Period
+	}
+	if s.Statistic != "" {
+		renderingProperties["stat"] = s.Statistic
+	}
+
+	if left {
+		renderingProperties["yAxis"] = "left"
+	} else {
+		renderingProperties["yAxis"] = "right"
+	}
+
+	settings = append(settings, renderingProperties)
+
+	return settings, nil
+}
