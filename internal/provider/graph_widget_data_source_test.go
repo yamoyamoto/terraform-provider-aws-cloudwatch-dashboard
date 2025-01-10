@@ -80,7 +80,6 @@ func TestGraphWidgetDatasourceSettings_ToCWDashboardBodyWidget(t *testing.T) {
 
 		cwWidgetProperties, ok := cwWidget.Properties.(CWDashboardBodyWidgetPropertyMetric)
 		assert.True(t, ok)
-		assert.Equal(t, "", cwWidgetProperties.AccountId) // NOTE: Widget level settings are not supported yet
 		assert.Equal(t, true, cwWidgetProperties.LiveData)
 		assert.Equal(t, "bottom", cwWidgetProperties.Legend.Position)
 		assert.Equal(t, int32(300), cwWidgetProperties.Period)

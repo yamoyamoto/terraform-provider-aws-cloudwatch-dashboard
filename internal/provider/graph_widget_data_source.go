@@ -330,11 +330,7 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 		Width:  w.Width,
 		Height: w.Height,
 		Properties: CWDashboardBodyWidgetPropertyMetric{
-			// NOTE: Widget level settings are not supported yet
-			AccountId: "",
-			// NOTE: annotations are not supported yet
-			Annotations: nil,
-			LiveData:    w.LiveData,
+			LiveData: w.LiveData,
 			Legend: &CWDashboardBodyWidgetPropertyMetricLegend{
 				Position: w.LegendPosition,
 			},
