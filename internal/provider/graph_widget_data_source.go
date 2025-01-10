@@ -114,10 +114,6 @@ func (d *graphWidgetDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 				Description: "Whether the graph should be shown as stacked lines",
 				Optional:    true,
 			},
-			"start": schema.StringAttribute{
-				Description: "The start of the time range to use for each widget independently from those of the dashboard",
-				Optional:    true,
-			},
 			"statistic": schema.StringAttribute{
 				Description: "The default statistic to be displayed for each metric",
 				Optional:    true,
@@ -193,7 +189,6 @@ type graphWidgetDataSourceSettings struct {
 	RightYAxis     *graphWidgetYAxisDataSourceSettings `json:"right_y_axis,omitempty"`
 	Sparkline      bool                                `json:"sparkline,omitempty"`
 	Stacked        bool                                `json:"stacked,omitempty"`
-	Start          string                              `json:"start,omitempty"`
 	Statistic      string                              `json:"statistic,omitempty"`
 	Timezone       string                              `json:"timezone,omitempty"`
 	Title          string                              `json:"title,omitempty"`
@@ -241,7 +236,6 @@ func (d *graphWidgetDataSource) Read(ctx context.Context, req datasource.ReadReq
 		Right:          rightMetrics,
 		Sparkline:      state.Sparkline.ValueBool(),
 		Stacked:        state.Stacked.ValueBool(),
-		Start:          state.Start.ValueString(),
 		Statistic:      state.Statistic.ValueString(),
 		Timezone:       state.Timezone.ValueString(),
 		Title:          state.Title.ValueString(),
