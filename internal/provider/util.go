@@ -22,15 +22,15 @@ func calculatePosition(size widgetSize, beforeWidgetPosition *widgetPosition) wi
 		}
 	}
 
-	x := beforeWidgetPosition.X + size.Width
-	y := beforeWidgetPosition.Y
-	if x >= MAX_WIDTH {
-		x = 0
-		y += size.Height
+	if beforeWidgetPosition.X+size.Width > MAX_WIDTH {
+		return widgetPosition{
+			X: 0,
+			Y: beforeWidgetPosition.Y + size.Height,
+		}
 	}
 
 	return widgetPosition{
-		X: x,
-		Y: y,
+		X: beforeWidgetPosition.X,
+		Y: beforeWidgetPosition.Y,
 	}
 }
