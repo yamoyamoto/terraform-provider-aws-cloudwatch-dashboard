@@ -11,8 +11,8 @@ func TestGraphWidgetDatasourceSettings_ToCWDashboardBodyWidget(t *testing.T) {
 	t.Run("should successfully parse when all fields are specified", func(t *testing.T) {
 		input := graphWidgetDataSourceSettings{
 			Height: 6,
-			Left: []metricDataSourceSettings{
-				{
+			Left: []IMetricSettings{
+				&metricDataSourceSettings{
 					MetricName: "CPUUtilization",
 					Namespace:  "AWS/EC2",
 					Account:    "123456789012",
@@ -37,8 +37,8 @@ func TestGraphWidgetDatasourceSettings_ToCWDashboardBodyWidget(t *testing.T) {
 			LiveData:       true,
 			Period:         300,
 			Region:         "us-east-1",
-			Right: []metricDataSourceSettings{
-				{
+			Right: []IMetricSettings{
+				&metricDataSourceSettings{
 					MetricName: "NetworkIn",
 					Namespace:  "AWS/EC2",
 					Account:    "123456789012",
