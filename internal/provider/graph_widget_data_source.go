@@ -176,7 +176,12 @@ type graphWidgetYAxisDataSourceSettings struct {
 	ShowUnits bool    `json:"show_units,omitempty"`
 }
 
+const (
+	typeGraphWidget = "graph"
+)
+
 type graphWidgetDataSourceSettings struct {
+	Type           string                              `json:"type"`
 	Height         int32                               `json:"height"`
 	Left           []metricDataSourceSettings          `json:"left,omitempty"`
 	LeftYAxis      *graphWidgetYAxisDataSourceSettings `json:"left_y_axis,omitempty"`
@@ -226,6 +231,7 @@ func (d *graphWidgetDataSource) Read(ctx context.Context, req datasource.ReadReq
 	}
 
 	settings := graphWidgetDataSourceSettings{
+		Type:           typeGraphWidget,
 		Height:         state.Height.ValueInt32(),
 		Left:           leftMetrics,
 		LegendPosition: state.LegendPosition.ValueString(),
