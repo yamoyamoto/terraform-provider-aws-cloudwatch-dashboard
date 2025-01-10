@@ -161,7 +161,6 @@ type graphWidgetDataSourceModel struct {
 	RightYAxis     *graphWidgetYAxisDataSourceModel `tfsdk:"right_y_axis"`
 	Sparkline      types.Bool                       `tfsdk:"sparkline"`
 	Stacked        types.Bool                       `tfsdk:"stacked"`
-	Start          types.String                     `tfsdk:"start"`
 	Statistic      types.String                     `tfsdk:"statistic"`
 	Timezone       types.String                     `tfsdk:"timezone"`
 	Title          types.String                     `tfsdk:"title"`
