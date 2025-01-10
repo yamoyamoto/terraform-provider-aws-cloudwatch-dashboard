@@ -28,7 +28,7 @@ func TestTextWidgetDataSourceSettingsToCWDashboardBodyWidget(t *testing.T) {
 			beforeWidgetPosition: &widgetPosition{X: 0, Y: 0},
 			expected: CWDashboardBodyWidget{
 				Type:   "text",
-				X:      8,
+				X:      0,
 				Y:      0,
 				Width:  8,
 				Height: 6,
@@ -48,7 +48,7 @@ func TestTextWidgetDataSourceSettingsToCWDashboardBodyWidget(t *testing.T) {
 			beforeWidgetPosition: &widgetPosition{X: 8, Y: 0},
 			expected: CWDashboardBodyWidget{
 				Type:   "text",
-				X:      16,
+				X:      8,
 				Y:      0,
 				Width:  8,
 				Height: 6,
@@ -105,7 +105,7 @@ func TestTextWidgetDataSourceSettingsToCWDashboardBodyWidget(t *testing.T) {
 			beforeWidgetPosition: &widgetPosition{X: 0, Y: 6},
 			expected: CWDashboardBodyWidget{
 				Type:   "text",
-				X:      8,
+				X:      0,
 				Y:      6,
 				Width:  8,
 				Height: 6,

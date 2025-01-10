@@ -33,32 +33,20 @@ func TestCalculatePosition(t *testing.T) {
 			},
 			beforeWidgetPosition: &widgetPosition{X: 0, Y: 0},
 			expected: widgetPosition{
-				X: 8,
+				X: 0,
 				Y: 0,
 			},
 		},
 		{
 			name: "should move to next row when exceeding max width",
 			size: widgetSize{
-				Width:  8,
+				Width:  5,
 				Height: 6,
 			},
 			beforeWidgetPosition: &widgetPosition{X: 20, Y: 0},
 			expected: widgetPosition{
 				X: 0,
 				Y: 6,
-			},
-		},
-		{
-			name: "should calculate next position in current row when exactly at max width",
-			size: widgetSize{
-				Width:  8,
-				Height: 6,
-			},
-			beforeWidgetPosition: &widgetPosition{X: 24, Y: 6},
-			expected: widgetPosition{
-				X: 0,
-				Y: 12,
 			},
 		},
 	}

@@ -34,21 +34,23 @@ type CWDashboardBodyWidgetPropertyText struct {
 }
 
 type CWDashboardBodyWidgetPropertyMetric struct {
-	AccountId   string                                          `json:"accountId,omitempty"`
-	Annotations *CWDashboardBodyWidgetPropertyMetricAnnotations `json:"annotations,omitempty"`
-	LiveData    bool                                            `json:"liveData,omitempty"`
-	Legend      *CWDashboardBodyWidgetPropertyMetricLegend      `json:"legend,omitempty"`
-	Metrics     [][]interface{}                                 `json:"metrics"`
-	Period      int32                                           `json:"period,omitempty"`
-	Region      string                                          `json:"region"`
-	Stat        string                                          `json:"stat,omitempty"`
-	Title       string                                          `json:"title,omitempty"`
-	View        string                                          `json:"view,omitempty"`
-	Stacked     bool                                            `json:"stacked,omitempty"`
-	Sparkline   bool                                            `json:"sparkline,omitempty"`
-	Timezone    string                                          `json:"timezone,omitempty"`
-	YAxis       *CWDashboardBodyWidgetPropertyMetricYAxis       `json:"yAxis,omitempty"`
-	Table       *CWDashboardBodyWidgetPropertyMetricTable       `json:"table,omitempty"`
+	// NOTE: Widget level settings are not supported yet
+	// AccountId string `json:"accountId,omitempty"`
+	// NOTE: annotations are not supported yet
+	// Annotations *CWDashboardBodyWidgetPropertyMetricAnnotations `json:"annotations,omitempty"`
+	LiveData  bool                                       `json:"liveData,omitempty"`
+	Legend    *CWDashboardBodyWidgetPropertyMetricLegend `json:"legend,omitempty"`
+	Metrics   [][]interface{}                            `json:"metrics"`
+	Period    int32                                      `json:"period,omitempty"`
+	Region    string                                     `json:"region"`
+	Sparkline bool                                       `json:"sparkline,omitempty"`
+	Stacked   bool                                       `json:"stacked,omitempty"`
+	Stat      string                                     `json:"stat,omitempty"`
+	Table     *CWDashboardBodyWidgetPropertyMetricTable  `json:"table,omitempty"`
+	Timezone  string                                     `json:"timezone,omitempty"`
+	Title     string                                     `json:"title,omitempty"`
+	View      string                                     `json:"view,omitempty"`
+	YAxis     *CWDashboardBodyWidgetPropertyMetricYAxis  `json:"yAxis,omitempty"`
 }
 
 type CWDashboardBodyWidgetPropertyMetricAnnotations struct {
@@ -157,14 +159,14 @@ func buildDashboardBodyJson(ctx context.Context, state dashboardDataSourceModel,
 			if err != nil {
 				return "", fmt.Errorf("failed to parse text widget: %w", err)
 			}
-			currentPosition = &widgetPosition{X: widget.X, Y: widget.Y}
+			currentPosition = &widgetPosition{X: widget.X + widget.Width, Y: widget.Y}
 			widgets = append(widgets, widget)
 		case graphWidgetDataSourceSettings:
-			widget, err := w.ToCWDashboardBodyWidget(ctx, w, currentPosition)
+			widget, err := w.ToCWDashboardBodyWidget(ctx, currentPosition)
 			if err != nil {
 				return "", fmt.Errorf("failed to parse graph widget: %w", err)
 			}
-			currentPosition = &widgetPosition{X: widget.X, Y: widget.Y}
+			currentPosition = &widgetPosition{X: widget.X + widget.Width, Y: widget.Y}
 			widgets = append(widgets, widget)
 		default:
 			return "", fmt.Errorf("unsupported widget type")

@@ -32,10 +32,6 @@ func (d *graphWidgetDataSource) Metadata(_ context.Context, req datasource.Metad
 func (d *graphWidgetDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"end": schema.StringAttribute{
-				Description: "The end of the time range to use for each widget independently from those of the dashboard",
-				Optional:    true,
-			},
 			"height": schema.Int32Attribute{
 				Description: "Height of the widget",
 				Required:    true,
@@ -118,10 +114,6 @@ func (d *graphWidgetDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 				Description: "Whether the graph should be shown as stacked lines",
 				Optional:    true,
 			},
-			"start": schema.StringAttribute{
-				Description: "The start of the time range to use for each widget independently from those of the dashboard",
-				Optional:    true,
-			},
 			"statistic": schema.StringAttribute{
 				Description: "The default statistic to be displayed for each metric",
 				Optional:    true,
@@ -150,10 +142,6 @@ func (d *graphWidgetDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 	}
 }
 
-const (
-	typeGraphWidget = "graph"
-)
-
 type graphWidgetYAxisDataSourceModel struct {
 	Label     types.String  `tfsdk:"label"`
 	Max       types.Float64 `tfsdk:"max"`
@@ -162,7 +150,6 @@ type graphWidgetYAxisDataSourceModel struct {
 }
 
 type graphWidgetDataSourceModel struct {
-	End            types.String                     `tfsdk:"end"`
 	Height         types.Int32                      `tfsdk:"height"`
 	Left           []types.String                   `tfsdk:"left"` // JSON string containing array of metrics
 	LeftYAxis      *graphWidgetYAxisDataSourceModel `tfsdk:"left_y_axis"`
@@ -174,7 +161,6 @@ type graphWidgetDataSourceModel struct {
 	RightYAxis     *graphWidgetYAxisDataSourceModel `tfsdk:"right_y_axis"`
 	Sparkline      types.Bool                       `tfsdk:"sparkline"`
 	Stacked        types.Bool                       `tfsdk:"stacked"`
-	Start          types.String                     `tfsdk:"start"`
 	Statistic      types.String                     `tfsdk:"statistic"`
 	Timezone       types.String                     `tfsdk:"timezone"`
 	Title          types.String                     `tfsdk:"title"`
@@ -190,9 +176,12 @@ type graphWidgetYAxisDataSourceSettings struct {
 	ShowUnits bool    `json:"show_units,omitempty"`
 }
 
+const (
+	typeGraphWidget = "graph"
+)
+
 type graphWidgetDataSourceSettings struct {
 	Type           string                              `json:"type"`
-	End            string                              `json:"end,omitempty"`
 	Height         int32                               `json:"height"`
 	Left           []metricDataSourceSettings          `json:"left,omitempty"`
 	LeftYAxis      *graphWidgetYAxisDataSourceSettings `json:"left_y_axis,omitempty"`
@@ -204,7 +193,6 @@ type graphWidgetDataSourceSettings struct {
 	RightYAxis     *graphWidgetYAxisDataSourceSettings `json:"right_y_axis,omitempty"`
 	Sparkline      bool                                `json:"sparkline,omitempty"`
 	Stacked        bool                                `json:"stacked,omitempty"`
-	Start          string                              `json:"start,omitempty"`
 	Statistic      string                              `json:"statistic,omitempty"`
 	Timezone       string                              `json:"timezone,omitempty"`
 	Title          string                              `json:"title,omitempty"`
@@ -244,7 +232,6 @@ func (d *graphWidgetDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 	settings := graphWidgetDataSourceSettings{
 		Type:           typeGraphWidget,
-		End:            state.End.ValueString(),
 		Height:         state.Height.ValueInt32(),
 		Left:           leftMetrics,
 		LegendPosition: state.LegendPosition.ValueString(),
@@ -254,7 +241,6 @@ func (d *graphWidgetDataSource) Read(ctx context.Context, req datasource.ReadReq
 		Right:          rightMetrics,
 		Sparkline:      state.Sparkline.ValueBool(),
 		Stacked:        state.Stacked.ValueBool(),
-		Start:          state.Start.ValueString(),
 		Statistic:      state.Statistic.ValueString(),
 		Timezone:       state.Timezone.ValueString(),
 		Title:          state.Title.ValueString(),
@@ -298,24 +284,24 @@ func (d *graphWidgetDataSource) Read(ctx context.Context, req datasource.ReadReq
 	}
 }
 
-func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Context, widget graphWidgetDataSourceSettings, beforeWidgetPosition *widgetPosition) (CWDashboardBodyWidget, error) {
+func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Context, beforeWidgetPosition *widgetPosition) (CWDashboardBodyWidget, error) {
 	var leftYAxis *CWDashboardBodyWidgetPropertyMetricYAxisSide
-	if widget.LeftYAxis != nil {
+	if w.LeftYAxis != nil {
 		leftYAxis = &CWDashboardBodyWidgetPropertyMetricYAxisSide{
-			Label:     widget.LeftYAxis.Label,
-			Max:       widget.LeftYAxis.Max,
-			Min:       widget.LeftYAxis.Min,
-			ShowUnits: widget.LeftYAxis.ShowUnits,
+			Label:     w.LeftYAxis.Label,
+			Max:       w.LeftYAxis.Max,
+			Min:       w.LeftYAxis.Min,
+			ShowUnits: w.LeftYAxis.ShowUnits,
 		}
 	}
 
 	var rightYAxis *CWDashboardBodyWidgetPropertyMetricYAxisSide
-	if widget.RightYAxis != nil {
+	if w.RightYAxis != nil {
 		rightYAxis = &CWDashboardBodyWidgetPropertyMetricYAxisSide{
-			Label:     widget.RightYAxis.Label,
-			Max:       widget.RightYAxis.Max,
-			Min:       widget.RightYAxis.Min,
-			ShowUnits: widget.RightYAxis.ShowUnits,
+			Label:     w.RightYAxis.Label,
+			Max:       w.RightYAxis.Max,
+			Min:       w.RightYAxis.Min,
+			ShowUnits: w.RightYAxis.ShowUnits,
 		}
 	}
 
@@ -328,8 +314,16 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 	}
 
 	metrics := make([][]interface{}, 0)
-	for _, metric := range widget.Left {
-		settings, err := buildMetricSettings(true, metric)
+	for _, metric := range w.Left {
+		settings, err := buildMetricWidgetMetricsSettings(true, metric)
+		if err != nil {
+			return CWDashboardBodyWidget{}, fmt.Errorf("failed to build metric settings: %w", err)
+		}
+		metrics = append(metrics, settings)
+	}
+
+	for _, metric := range w.Right {
+		settings, err := buildMetricWidgetMetricsSettings(false, metric)
 		if err != nil {
 			return CWDashboardBodyWidget{}, fmt.Errorf("failed to build metric settings: %w", err)
 		}
@@ -338,26 +332,22 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 
 	cwWidget := CWDashboardBodyWidget{
 		Type:   "metric",
-		Width:  widget.Width,
-		Height: widget.Height,
+		Width:  w.Width,
+		Height: w.Height,
 		Properties: CWDashboardBodyWidgetPropertyMetric{
-			// NOTE: Widget level settings are not supported yet
-			AccountId: "",
-			// NOTE: annotations are not supported yet
-			Annotations: nil,
-			LiveData:    widget.LiveData,
+			LiveData: w.LiveData,
 			Legend: &CWDashboardBodyWidgetPropertyMetricLegend{
-				Position: widget.LegendPosition,
+				Position: w.LegendPosition,
 			},
 			Metrics:   metrics,
-			Period:    widget.Period,
-			Region:    widget.Region,
-			Stat:      widget.Statistic,
-			Title:     widget.Title,
-			View:      widget.View,
-			Stacked:   widget.Stacked,
-			Sparkline: widget.Sparkline,
-			Timezone:  widget.Timezone,
+			Period:    w.Period,
+			Region:    w.Region,
+			Stat:      w.Statistic,
+			Title:     w.Title,
+			View:      w.View,
+			Stacked:   w.Stacked,
+			Sparkline: w.Sparkline,
+			Timezone:  w.Timezone,
 			YAxis:     yAxis,
 			// NOTE: unnecessary to set because it's not used in the graph widget
 			Table: nil,
@@ -376,7 +366,7 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 }
 
 // https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/CloudWatch-Dashboard-Body-Structure.html#CloudWatch-Dashboard-Properties-Metrics-Array-Format
-func buildMetricSettings(left bool, metricSettings metricDataSourceSettings) ([]interface{}, error) {
+func buildMetricWidgetMetricsSettings(left bool, metricSettings metricDataSourceSettings) ([]interface{}, error) {
 	settings := make([]interface{}, 0)
 
 	settings = append(settings, metricSettings.Namespace)
