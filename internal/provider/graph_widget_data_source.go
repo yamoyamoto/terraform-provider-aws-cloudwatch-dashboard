@@ -150,10 +150,6 @@ func (d *graphWidgetDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 	}
 }
 
-const (
-	typeGraphWidget = "graph"
-)
-
 type graphWidgetYAxisDataSourceModel struct {
 	Label     types.String  `tfsdk:"label"`
 	Max       types.Float64 `tfsdk:"max"`
@@ -191,7 +187,6 @@ type graphWidgetYAxisDataSourceSettings struct {
 }
 
 type graphWidgetDataSourceSettings struct {
-	Type           string                              `json:"type"`
 	End            string                              `json:"end,omitempty"`
 	Height         int32                               `json:"height"`
 	Left           []metricDataSourceSettings          `json:"left,omitempty"`
@@ -243,7 +238,6 @@ func (d *graphWidgetDataSource) Read(ctx context.Context, req datasource.ReadReq
 	}
 
 	settings := graphWidgetDataSourceSettings{
-		Type:           typeGraphWidget,
 		End:            state.End.ValueString(),
 		Height:         state.Height.ValueInt32(),
 		Left:           leftMetrics,
@@ -329,7 +323,7 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 
 	metrics := make([][]interface{}, 0)
 	for _, metric := range widget.Left {
-		settings, err := buildMetricSettings(true, metric)
+		settings, err := buildMetricWidgetMetricsSettings(true, metric)
 		if err != nil {
 			return CWDashboardBodyWidget{}, fmt.Errorf("failed to build metric settings: %w", err)
 		}
@@ -376,7 +370,7 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 }
 
 // https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/CloudWatch-Dashboard-Body-Structure.html#CloudWatch-Dashboard-Properties-Metrics-Array-Format
-func buildMetricSettings(left bool, metricSettings metricDataSourceSettings) ([]interface{}, error) {
+func buildMetricWidgetMetricsSettings(left bool, metricSettings metricDataSourceSettings) ([]interface{}, error) {
 	settings := make([]interface{}, 0)
 
 	settings = append(settings, metricSettings.Namespace)
