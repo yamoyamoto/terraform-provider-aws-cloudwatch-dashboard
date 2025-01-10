@@ -104,6 +104,14 @@ type metricDataSourceSettings struct {
 	Unit          string            `json:"unit,omitempty"`
 }
 
+const (
+	typeNameOfMetricDataSource = "metric"
+)
+
+func (s *metricDataSourceSettings) GetType() string {
+	return typeNameOfMetricDataSource
+}
+
 func (d *metricDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var state metricDataSourceModel
 
