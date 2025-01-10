@@ -315,40 +315,42 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 
 	metrics := make([][]interface{}, 0)
 	for _, metric := range w.Left {
-		var settings []interface{}
-		var err error
 		switch m := metric.(type) {
 		case *metricDataSourceSettings:
-			settings, err = m.buildMetricWidgetMetricsSettings(true)
+			settings, err := m.buildMetricWidgetMetricsSettings(true)
 			if err != nil {
 				return CWDashboardBodyWidget{}, fmt.Errorf("failed to build metric settings: %w", err)
 			}
+			metrics = append(metrics, settings)
 		case *metricExpressionDataSourceSettings:
-		// TODO: implement
+			settingsList, err := m.buildMetricWidgetMetricSettingsList(true)
+			if err != nil {
+				return CWDashboardBodyWidget{}, fmt.Errorf("failed to build metric settings: %w", err)
+			}
+			metrics = append(metrics, settingsList...)
 		default:
 			return CWDashboardBodyWidget{}, fmt.Errorf("unsupported metric type: %T", metric)
 
 		}
-
-		metrics = append(metrics, settings)
 	}
 
 	for _, metric := range w.Right {
-		var settings []interface{}
-		var err error
 		switch m := metric.(type) {
 		case *metricDataSourceSettings:
-			settings, err = m.buildMetricWidgetMetricsSettings(false)
+			settings, err := m.buildMetricWidgetMetricsSettings(false)
 			if err != nil {
 				return CWDashboardBodyWidget{}, fmt.Errorf("failed to build metric settings: %w", err)
 			}
+			metrics = append(metrics, settings)
 		case *metricExpressionDataSourceSettings:
-			// TODO: implement
+			settingsList, err := m.buildMetricWidgetMetricSettingsList(false)
+			if err != nil {
+				return CWDashboardBodyWidget{}, fmt.Errorf("failed to build metric settings: %w", err)
+			}
+			metrics = append(metrics, settingsList...)
 		default:
 			return CWDashboardBodyWidget{}, fmt.Errorf("unsupported metric type: %T", metric)
 		}
-
-		metrics = append(metrics, settings)
 	}
 
 	cwWidget := CWDashboardBodyWidget{
