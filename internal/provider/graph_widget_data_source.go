@@ -292,24 +292,24 @@ func (d *graphWidgetDataSource) Read(ctx context.Context, req datasource.ReadReq
 	}
 }
 
-func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Context, widget graphWidgetDataSourceSettings, beforeWidgetPosition *widgetPosition) (CWDashboardBodyWidget, error) {
+func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Context, beforeWidgetPosition *widgetPosition) (CWDashboardBodyWidget, error) {
 	var leftYAxis *CWDashboardBodyWidgetPropertyMetricYAxisSide
-	if widget.LeftYAxis != nil {
+	if w.LeftYAxis != nil {
 		leftYAxis = &CWDashboardBodyWidgetPropertyMetricYAxisSide{
-			Label:     widget.LeftYAxis.Label,
-			Max:       widget.LeftYAxis.Max,
-			Min:       widget.LeftYAxis.Min,
-			ShowUnits: widget.LeftYAxis.ShowUnits,
+			Label:     w.LeftYAxis.Label,
+			Max:       w.LeftYAxis.Max,
+			Min:       w.LeftYAxis.Min,
+			ShowUnits: w.LeftYAxis.ShowUnits,
 		}
 	}
 
 	var rightYAxis *CWDashboardBodyWidgetPropertyMetricYAxisSide
-	if widget.RightYAxis != nil {
+	if w.RightYAxis != nil {
 		rightYAxis = &CWDashboardBodyWidgetPropertyMetricYAxisSide{
-			Label:     widget.RightYAxis.Label,
-			Max:       widget.RightYAxis.Max,
-			Min:       widget.RightYAxis.Min,
-			ShowUnits: widget.RightYAxis.ShowUnits,
+			Label:     w.RightYAxis.Label,
+			Max:       w.RightYAxis.Max,
+			Min:       w.RightYAxis.Min,
+			ShowUnits: w.RightYAxis.ShowUnits,
 		}
 	}
 
@@ -322,7 +322,7 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 	}
 
 	metrics := make([][]interface{}, 0)
-	for _, metric := range widget.Left {
+	for _, metric := range w.Left {
 		settings, err := buildMetricWidgetMetricsSettings(true, metric)
 		if err != nil {
 			return CWDashboardBodyWidget{}, fmt.Errorf("failed to build metric settings: %w", err)
@@ -332,26 +332,26 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 
 	cwWidget := CWDashboardBodyWidget{
 		Type:   "metric",
-		Width:  widget.Width,
-		Height: widget.Height,
+		Width:  w.Width,
+		Height: w.Height,
 		Properties: CWDashboardBodyWidgetPropertyMetric{
 			// NOTE: Widget level settings are not supported yet
 			AccountId: "",
 			// NOTE: annotations are not supported yet
 			Annotations: nil,
-			LiveData:    widget.LiveData,
+			LiveData:    w.LiveData,
 			Legend: &CWDashboardBodyWidgetPropertyMetricLegend{
-				Position: widget.LegendPosition,
+				Position: w.LegendPosition,
 			},
 			Metrics:   metrics,
-			Period:    widget.Period,
-			Region:    widget.Region,
-			Stat:      widget.Statistic,
-			Title:     widget.Title,
-			View:      widget.View,
-			Stacked:   widget.Stacked,
-			Sparkline: widget.Sparkline,
-			Timezone:  widget.Timezone,
+			Period:    w.Period,
+			Region:    w.Region,
+			Stat:      w.Statistic,
+			Title:     w.Title,
+			View:      w.View,
+			Stacked:   w.Stacked,
+			Sparkline: w.Sparkline,
+			Timezone:  w.Timezone,
 			YAxis:     yAxis,
 			// NOTE: unnecessary to set because it's not used in the graph widget
 			Table: nil,

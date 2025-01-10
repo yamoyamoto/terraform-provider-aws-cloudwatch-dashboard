@@ -160,7 +160,7 @@ func buildDashboardBodyJson(ctx context.Context, state dashboardDataSourceModel,
 			currentPosition = &widgetPosition{X: widget.X, Y: widget.Y}
 			widgets = append(widgets, widget)
 		case graphWidgetDataSourceSettings:
-			widget, err := w.ToCWDashboardBodyWidget(ctx, w, currentPosition)
+			widget, err := w.ToCWDashboardBodyWidget(ctx, currentPosition)
 			if err != nil {
 				return "", fmt.Errorf("failed to parse graph widget: %w", err)
 			}
