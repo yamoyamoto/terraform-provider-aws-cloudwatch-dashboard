@@ -317,6 +317,14 @@ func (w graphWidgetDataSourceSettings) ToCWDashboardBodyWidget(ctx context.Conte
 		metrics = append(metrics, settings)
 	}
 
+	for _, metric := range w.Right {
+		settings, err := buildMetricWidgetMetricsSettings(false, metric)
+		if err != nil {
+			return CWDashboardBodyWidget{}, fmt.Errorf("failed to build metric settings: %w", err)
+		}
+		metrics = append(metrics, settings)
+	}
+
 	cwWidget := CWDashboardBodyWidget{
 		Type:   "metric",
 		Width:  w.Width,
