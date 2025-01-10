@@ -159,14 +159,14 @@ func buildDashboardBodyJson(ctx context.Context, state dashboardDataSourceModel,
 			if err != nil {
 				return "", fmt.Errorf("failed to parse text widget: %w", err)
 			}
-			currentPosition = &widgetPosition{X: widget.X, Y: widget.Y}
+			currentPosition = &widgetPosition{X: widget.X + widget.Width, Y: widget.Y}
 			widgets = append(widgets, widget)
 		case graphWidgetDataSourceSettings:
 			widget, err := w.ToCWDashboardBodyWidget(ctx, currentPosition)
 			if err != nil {
 				return "", fmt.Errorf("failed to parse graph widget: %w", err)
 			}
-			currentPosition = &widgetPosition{X: widget.X, Y: widget.Y}
+			currentPosition = &widgetPosition{X: widget.X + widget.Width, Y: widget.Y}
 			widgets = append(widgets, widget)
 		default:
 			return "", fmt.Errorf("unsupported widget type")
