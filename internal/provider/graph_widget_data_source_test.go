@@ -103,5 +103,35 @@ func TestGraphWidgetDatasourceSettings_ToCWDashboardBodyWidget(t *testing.T) {
 			ShowUnits: true,
 		}, cwWidgetProperties.YAxis.Right)
 		assert.Nil(t, cwWidgetProperties.Table)
+
+		// Metrics assertions
+		assert.Len(t, cwWidgetProperties.Metrics, 2)
+		assert.Equal(t, []interface{}{
+			"AWS/EC2",
+			"CPUUtilization",
+			"InstanceId",
+			"i-1234567890abcdef0",
+			map[string]interface{}{
+				"color":  "#ff0000",
+				"label":  "CPU Utilization",
+				"period": int32(300),
+				"stat":   "Average",
+				"yAxis":  "left",
+			},
+		}, cwWidgetProperties.Metrics[0])
+		assert.Equal(t, []interface{}{
+			"AWS/EC2",
+			"NetworkIn",
+			"InstanceId",
+			"i-1234567890abcdef0",
+			map[string]interface{}{
+				"color":  "#0000ff",
+				"label":  "Network In",
+				"period": int32(300),
+				"stat":   "Average",
+				"yAxis":  "right",
+			},
+		}, cwWidgetProperties.Metrics[1])
+
 	})
 }
