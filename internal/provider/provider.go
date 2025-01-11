@@ -26,7 +26,7 @@ type cwDashboardProvider struct {
 }
 
 func (p *cwDashboardProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "dashboard"
+	resp.TypeName = "cwdashboard"
 	resp.Version = p.version
 }
 
