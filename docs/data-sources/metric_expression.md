@@ -17,8 +17,11 @@ description: |-
 
 ### Required
 
-- `color` (String) The color of the metric
 - `expression` (String) The expression of the metric
+
+### Optional
+
+- `color` (String) The color of the metric
 - `label` (String) The label of the metric
 - `period` (Number) The period of the metric
 - `using_metrics` (Map of String) The metrics used in the expression
