@@ -3,12 +3,12 @@
 page_title: "cwdashboard Provider"
 subcategory: ""
 description: |-
-  
+  Terraform provider that makes AWS CloudWatch Dashboard management more maintainable and easier to build
 ---
 
 # cwdashboard Provider
 
-
+Terraform provider that makes AWS CloudWatch Dashboard management more maintainable and easier to build
 
 
 
