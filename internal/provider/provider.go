@@ -31,7 +31,9 @@ func (p *cwDashboardProvider) Metadata(_ context.Context, _ provider.MetadataReq
 }
 
 func (p *cwDashboardProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
-	resp.Schema = schema.Schema{}
+	resp.Schema = schema.Schema{
+		Description: "Terraform provider that makes AWS CloudWatch Dashboard management more maintainable and easier to build",
+	}
 }
 
 func (p *cwDashboardProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
