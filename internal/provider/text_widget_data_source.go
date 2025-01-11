@@ -31,11 +31,11 @@ func (d *textWidgetDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"markdown": schema.StringAttribute{
-				Description: "The markdown content of the widget",
+				Description: "The text to be displayed by the widget. Use this parameter only for text widgets.",
 				Required:    true,
 			},
 			"background": schema.StringAttribute{
-				Description: "The background color of the widget",
+				Description: "Specifies whether the text widget has a solid or transparent background. The value " + "`transparent`" + " makes the widget transparent. The value " + "`solid`" + " is the default.",
 				Optional:    true,
 			},
 			"width": schema.Int32Attribute{
