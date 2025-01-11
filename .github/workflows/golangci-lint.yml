@@ -18,6 +18,7 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -39,4 +40,6 @@ jobs:
           key: golang-${{ runner.os }}-${{ hashFiles('go.mod') }}
 
       - name: Run golangci-lint
-        run: golangci-lint run
+        run: github-comment exec -- golangci-lint run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
