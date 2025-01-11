@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/yamoyamoto/terraform-provider-aws-cloudwatch-dashboard/internal/provider"
+	"github.com/yamoyamoto/terraform-provider-cwdashboard/internal/provider"
 )
 
 var (
