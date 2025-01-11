@@ -59,7 +59,7 @@ data "cwdashboard" "this" {
 - `period_override` (String) Use this field to specify the period for the graphs when the dashboard loads. Specifying `auto` causes the period of all graphs on the dashboard to automatically adapt to the time range of the dashboard. Specifying `inherit` ensures that the period set for each graph is always obeyed.
 
 Valid Values: auto | inherit
-- `widgets` (List of String) The list of widgets in the dashboard. For more information, see Widgets Array Structure.
+- `widgets` (List of String) The list of widgets in the dashboard.
 
 ### Optional
 
