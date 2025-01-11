@@ -8,6 +8,7 @@ on:
       - go.sum
       - main.go
       - examples/**
+      - .github/workflows/generate-docs.yml
 
 jobs:
   generate-docs:
