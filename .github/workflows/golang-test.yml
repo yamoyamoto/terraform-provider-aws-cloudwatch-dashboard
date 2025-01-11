@@ -29,10 +29,5 @@ jobs:
             ~/.cache/go-build
           key: golang-${{ runner.os }}-${{ hashFiles('go.mod') }}
 
-      - uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
-        with:
-          go-version-file: go.mod
-          cache: false
-
       - name: Run golang test
         run: go test -v -cover ./...
