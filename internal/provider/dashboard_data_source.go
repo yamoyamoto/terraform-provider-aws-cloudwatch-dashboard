@@ -33,17 +33,8 @@ func (d *dashboardDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"widgets": schema.ListAttribute{
-				Description: `The list of widgets in the dashboard. For more information, see Widgets Array Structure.`,
+				Description: `The list of widgets in the dashboard.`,
 				Required:    true,
-				ElementType: types.StringType,
-			},
-			"variables": schema.ListAttribute{
-				Description: `The array of dashboard variable objects used in the dashboard. For more information about the fields that you can use in each dashboard variable object, see Variables Array Structure.
-	
-	For more information about dashboard variables, see Create flexible dashboards with dashboard variables.
-	
-	If you include a variables array, it can contain between 0 and 25 variable objects.`,
-				Optional:    true,
 				ElementType: types.StringType,
 			},
 			"start": schema.StringAttribute{
