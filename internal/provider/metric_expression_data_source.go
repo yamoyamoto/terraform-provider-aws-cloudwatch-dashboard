@@ -37,19 +37,19 @@ func (d *metricExpressionDataSource) Schema(_ context.Context, _ datasource.Sche
 			},
 			"color": schema.StringAttribute{
 				Description: "The color of the metric",
-				Required:    true,
+				Optional:    true,
 			},
 			"label": schema.StringAttribute{
 				Description: "The label of the metric",
-				Required:    true,
+				Optional:    true,
 			},
 			"period": schema.Int32Attribute{
 				Description: "The period of the metric",
-				Required:    true,
+				Optional:    true,
 			},
 			"using_metrics": schema.MapAttribute{
 				Description: "The metrics used in the expression",
-				Required:    true,
+				Optional:    true,
 				ElementType: types.StringType,
 			},
 			"json": schema.StringAttribute{
