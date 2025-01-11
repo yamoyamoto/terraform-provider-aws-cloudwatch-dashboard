@@ -39,4 +39,6 @@ jobs:
           key: golang-${{ runner.os }}-${{ hashFiles('go.mod') }}
 
       - name: Run golangci-lint
-        run: golangci-lint run
+        run: github-comment exec -- golangci-lint run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
