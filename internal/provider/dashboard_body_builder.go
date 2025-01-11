@@ -11,7 +11,7 @@ import (
 */
 
 // https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/CloudWatch-Dashboard-Body-Structure.html
-type CWDashboardBodyHoge struct {
+type CWDashboardBody struct {
 	Widgets []CWDashboardBodyWidget `json:"widgets"`
 	// Variables []CWDashboardBodyVariable `json:"variables"`
 	Start          string `json:"start,omitempty"`
