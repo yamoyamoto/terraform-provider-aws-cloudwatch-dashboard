@@ -29,6 +29,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # https://github.com/orgs/aquaproj/discussions/2964
+      - name: Run shellcheck help for workaround
+        run: shellcheck --help || true
+
       - name: Run actionlint
         run: github-comment exec -- actionlint
         env:
