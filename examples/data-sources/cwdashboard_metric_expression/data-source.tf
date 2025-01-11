@@ -35,7 +35,7 @@ data "cwdashboard" "this" {
   ]
 }
 
-# use dashboard JSON with the Terraform AWS Provider
+# to create dashboard, use AWS Terraform Provider with the dashboard JSON
 resource "aws_cloudwatch_dashboard" "this" {
   dashboard_name = "test-dashboard"
   dashboard_body = data.cwdashboard.this.json
