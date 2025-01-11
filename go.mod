@@ -1,4 +1,4 @@
-module github.com/yamoyamoto/terraform-provider-aws-cloudwatch-dashboard
+module github.com/yamoyamoto/terraform-provider-cwdashboard
 
 go 1.23.3
 
