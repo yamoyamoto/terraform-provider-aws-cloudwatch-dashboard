@@ -20,6 +20,10 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - uses: aquaproj/aqua-installer@f13c5d2f0357708d85477aabe50fd3f725528745 # v3.1.0
+        with:
+          aqua_version: v2.41.0
+
       - uses: actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a # v4.1.2
         with:
           path: |
