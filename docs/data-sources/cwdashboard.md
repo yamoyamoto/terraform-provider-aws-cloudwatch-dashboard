@@ -59,7 +59,7 @@ data "cwdashboard" "this" {
 - `period_override` (String) Use this field to specify the period for the graphs when the dashboard loads. Specifying auto causes the period of all graphs on the dashboard to automatically adapt to the time range of the dashboard. Specifying inherit ensures that the period set for each graph is always obeyed.
 	
 	Valid Values: auto | inherit
-- `widgets` (List of String) The list of widgets in the dashboard. For more information, see Widgets Array Structure.
+- `widgets` (List of String) The list of widgets in the dashboard.
 
 ### Optional
 
@@ -71,11 +71,6 @@ data "cwdashboard" "this" {
 	You can also use start along with an end field, to specify an absolute time range. When specifying an absolute time range, use the ISO 8601 format. For example, 2018-12-17T06:00:00.000Z.
 	
 	If you omit start, the dashboard shows the default time range when it loads.
-- `variables` (List of String) The array of dashboard variable objects used in the dashboard. For more information about the fields that you can use in each dashboard variable object, see Variables Array Structure.
-	
-	For more information about dashboard variables, see Create flexible dashboards with dashboard variables.
-	
-	If you include a variables array, it can contain between 0 and 25 variable objects.
 
 ### Read-Only
 
