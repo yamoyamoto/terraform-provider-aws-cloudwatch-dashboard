@@ -162,9 +162,15 @@ func (s *metricExpressionDataSourceSettings) buildMetricWidgetMetricSettingsList
 	metricExpressionSettings := []interface{}{
 		map[string]interface{}{
 			"expression": s.Expression,
-			"label":      s.Label,
-			"color":      s.Color,
 		},
+	}
+
+	if s.Color != "" {
+		metricExpressionSettings[0].(map[string]interface{})["color"] = s.Color
+	}
+
+	if s.Label != "" {
+		metricExpressionSettings[0].(map[string]interface{})["label"] = s.Label
 	}
 
 	settings = append(settings, metricExpressionSettings)
