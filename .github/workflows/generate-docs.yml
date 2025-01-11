@@ -1,20 +1,20 @@
-name: golangci-lint Checks
+name: Generate Docs
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
     paths:
-      - .github/workflows/golangci-lint.yml
       - internal/**
       - go.mod
       - go.sum
       - main.go
+      - examples/**
+      - .github/workflows/generate-docs.yml
 
 jobs:
-  golangci-lint:
+  generate-docs:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
@@ -33,5 +33,16 @@ jobs:
             ~/.cache/go-build
           key: golang-${{ runner.os }}-${{ hashFiles('go.mod') }}
 
-      - name: Run golangci-lint
-        run: golangci-lint run
+      - name: Run go doc
+        run: go generate ./...
+
+      - name: Commit changes
+        run: |
+          ghcp commit \
+            -r $GH_REPOSITORY \
+            -b $GH_PULL_REQUEST_REF \
+            -m "chore: update Provider docs" .
+        env:
+          GH_REPOSITORY: ${{ github.repository }}
+          GH_PULL_REQUEST_REF: ${{ github.event.pull_request.head.ref }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
