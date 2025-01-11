@@ -60,7 +60,7 @@ func (d *dashboardDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 				Description: `Use this field to specify the period for the graphs when the dashboard loads. ` +
 					`Specifying ` + "`auto`" + ` causes the period of all graphs on the dashboard to automatically adapt to the time range of the dashboard. ` +
 					`Specifying ` + "`inherit`" + ` ensures that the period set for each graph is always obeyed. ` +
-					`Valid Values: auto | inherit`,
+					`Valid Values: ` + "`auto`" + ` |` + "`inherit`",
 				Required: true,
 			},
 			"json": schema.StringAttribute{
