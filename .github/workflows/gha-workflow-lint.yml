@@ -1,0 +1,64 @@
+name: GHA Workflow Lint
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - .github/workflows/**
+
+jobs:
+  actionlint:
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - uses: aquaproj/aqua-installer@f13c5d2f0357708d85477aabe50fd3f725528745 # v3.1.0
+        with:
+          aqua_version: v2.41.0
+
+      - name: Hide old comment
+        run: github-comment hide -condition 'Comment.HasMeta && (Comment.Meta.SHA1 != Commit.SHA1 && Comment.Meta.JobName == "actionlint")'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # https://github.com/orgs/aquaproj/discussions/2964
+      - name: Run shellcheck help for workaround
+        run: shellcheck --help || true
+
+      - name: Run actionlint
+        run: github-comment exec -- actionlint
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  ghalint:
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - uses: aquaproj/aqua-installer@f13c5d2f0357708d85477aabe50fd3f725528745 # v3.1.0
+        with:
+          aqua_version: v2.41.0
+
+      - name: Hide old comment
+        run: github-comment hide -condition 'Comment.HasMeta && (Comment.Meta.SHA1 != Commit.SHA1 && Comment.Meta.JobName == "ghalint")'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run ghalint
+        run: github-comment exec -- ghalint run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
