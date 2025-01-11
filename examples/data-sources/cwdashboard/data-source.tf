@@ -1,5 +1,5 @@
 data "cwdashboard_text_widget" "this" {
-  markdown   = "Hello, World!"
+  markdown   = "# Hello, World!"
   background = "#000000"
   width      = 24
   height     = 2
