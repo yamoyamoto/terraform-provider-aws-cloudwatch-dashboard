@@ -25,12 +25,12 @@ jobs:
       - name: Hide old comment
         run: github-comment hide -condition 'Comment.HasMeta && (Comment.Meta.SHA1 != Commit.SHA1 && Comment.Meta.JobName == "actionlint")'
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run actionlint
         run: github-comment exec -- actionlint
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   ghalint:
     timeout-minutes: 5
@@ -48,9 +48,9 @@ jobs:
       - name: Hide old comment
         run: github-comment hide -condition 'Comment.HasMeta && (Comment.Meta.SHA1 != Commit.SHA1 && Comment.Meta.JobName == "ghalint")'
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run ghalint
         run: github-comment exec -- ghalint run
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
