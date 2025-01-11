@@ -32,23 +32,39 @@ func (d *dashboardDataSource) Metadata(_ context.Context, req datasource.Metadat
 func (d *dashboardDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"start": schema.StringAttribute{
-				Description: "The start of the time range to use for each widget on the dashboard",
+			"widgets": schema.ListAttribute{
+				Description: `The list of widgets in the dashboard. For more information, see Widgets Array Structure.`,
+				Required:    true,
+				ElementType: types.StringType,
+			},
+			"variables": schema.ListAttribute{
+				Description: `The array of dashboard variable objects used in the dashboard. For more information about the fields that you can use in each dashboard variable object, see Variables Array Structure.
+	
+	For more information about dashboard variables, see Create flexible dashboards with dashboard variables.
+	
+	If you include a variables array, it can contain between 0 and 25 variable objects.`,
 				Optional:    true,
+				ElementType: types.StringType,
+			},
+			"start": schema.StringAttribute{
+				Description: `The start of the time range to use for each widget on the dashboard.
+	
+	You can specify start without specifying end to specify a relative time range that ends with the current time. In this case, the value of start must begin with -PT if you specify a time range in minutes or hours, and must begin with -P if you specify a time range in days, weeks, or months. You can then use M, H, D, W and M as abbreviations for minutes, hours, days, weeks and months. For example, -PT5M shows the last 5 minutes, -PT8H shows the last 8 hours, and -P3M shows the last three months.
+	
+	You can also use start along with an end field, to specify an absolute time range. When specifying an absolute time range, use the ISO 8601 format. For example, 2018-12-17T06:00:00.000Z.
+	
+	If you omit start, the dashboard shows the default time range when it loads.`,
+				Optional: true,
 			},
 			"end": schema.StringAttribute{
-				Description: "The end of the time range to use for each widget on the dashboard when the dashboard loads",
+				Description: `The end of the time range to use for each widget on the dashboard when the dashboard loads. If you specify a value for end, you must also specify a value for start. For each of these values, specify an absolute time in the ISO 8601 format. For example, 2018-12-17T06:00:00.000Z.`,
 				Optional:    true,
 			},
 			"period_override": schema.StringAttribute{
-				Description: "Use this field to specify the period for the graphs when the dashboard loads",
-				Required:    true,
-			},
-
-			"widgets": schema.ListAttribute{
-				Description: "The widgets of the dashboard",
-				Required:    true,
-				ElementType: types.StringType,
+				Description: `Use this field to specify the period for the graphs when the dashboard loads. Specifying auto causes the period of all graphs on the dashboard to automatically adapt to the time range of the dashboard. Specifying inherit ensures that the period set for each graph is always obeyed.
+	
+	Valid Values: auto | inherit`,
+				Required: true,
 			},
 			"json": schema.StringAttribute{
 				Description: "The json of the dashboard body",
