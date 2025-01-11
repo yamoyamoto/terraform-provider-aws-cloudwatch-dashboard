@@ -33,7 +33,7 @@ func (d *dashboardDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"widgets": schema.ListAttribute{
-				Description: `The list of widgets in the dashboard. For more information, see Widgets Array Structure.`,
+				Description: `The list of widgets in the dashboard.`,
 				Required:    true,
 				ElementType: types.StringType,
 			},
