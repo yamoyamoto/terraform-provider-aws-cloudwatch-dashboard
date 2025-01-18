@@ -1,8 +1,9 @@
 module github.com/yamoyamoto/terraform-provider-cwdashboard
 
-go 1.23.3
+go 1.23.4
 
 require (
+	github.com/Code-Hex/synchro v0.5.3
 	github.com/hashicorp/terraform-plugin-docs v0.20.1
 	github.com/hashicorp/terraform-plugin-framework v1.13.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0

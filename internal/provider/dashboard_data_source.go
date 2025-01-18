@@ -4,7 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"regexp"
+	"strings"
 
+	"github.com/Code-Hex/synchro/iso8601"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -79,11 +82,73 @@ type dashboardDataSourceModel struct {
 	Json           types.String `tfsdk:"json"`
 }
 
+const (
+	dashboardMaxWidgets = 500
+
+	periodOverrideAuto    = "auto"
+	periodOverrideInherit = "inherit"
+)
+
+var (
+	// -PTxx[MH] （minute、hour）
+	relativeMinutesHoursPattern = regexp.MustCompile(`^-PT\d+[MH]$`)
+
+	// -Pxx[DWM] （day、week、month）
+	relativeDaysWeeksMonthsPattern = regexp.MustCompile(`^-P\d+[DWM]$`)
+)
+
+func (d *dashboardDataSourceModel) Validate() error {
+	if len(d.Widgets.Elements()) > dashboardMaxWidgets {
+		return fmt.Errorf("maximum number of widgets is %d. Got %d", dashboardMaxWidgets, len(d.Widgets.Elements()))
+	}
+
+	// check if start is a valid ISO8601 date
+	if !d.Start.IsNull() {
+		_, err := iso8601.ParseDateTime(d.Start.ValueString())
+		if err != nil {
+			// check if start is a valid relative time
+			if strings.HasPrefix(d.Start.ValueString(), "-PT") {
+				if !relativeMinutesHoursPattern.MatchString(d.Start.ValueString()) {
+					return fmt.Errorf("start must be a valid ISO8601 date or a valid relative time: %w", err)
+				}
+			} else if strings.HasPrefix(d.Start.ValueString(), "-P") {
+				if !relativeDaysWeeksMonthsPattern.MatchString(d.Start.ValueString()) {
+					return fmt.Errorf("start must be a valid ISO8601 date or a valid relative time: %w", err)
+				}
+			} else {
+				return fmt.Errorf("start must be a valid ISO8601 date or a valid relative time: %w", err)
+			}
+		}
+	}
+
+	// check if end is a valid ISO8601 date
+	if !d.End.IsNull() {
+		_, err := iso8601.ParseDateTime(d.End.ValueString())
+		if err != nil {
+			return fmt.Errorf("end must be a valid ISO8601 date: %w", err)
+		}
+	}
+
+	// check if period_override is a valid value
+	if !d.PeriodOverride.IsNull() {
+		if d.PeriodOverride.ValueString() != periodOverrideAuto && d.PeriodOverride.ValueString() != periodOverrideInherit {
+			return fmt.Errorf("period_override must be either 'auto' or 'inherit'")
+		}
+	}
+
+	return nil
+}
+
 func (d *dashboardDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var state dashboardDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if err := state.Validate(); err != nil {
+		resp.Diagnostics.AddError("failed to validate dashboard data source", err.Error())
 		return
 	}
 
