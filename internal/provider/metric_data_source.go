@@ -107,8 +107,10 @@ var (
 
 func (d *metricDataSourceModel) Validate() error {
 	// Period must be 60 or a multiple of 60
-	if period := d.Period.ValueInt32(); period < 60 || period%60 != 0 {
-		return fmt.Errorf("period must be 60 or a multiple of 60, got: %d", period)
+	if !d.Period.IsNull() {
+		if period := d.Period.ValueInt32(); period < 60 || period%60 != 0 {
+			return fmt.Errorf("period must be 60 or a multiple of 60, got: %d", period)
+		}
 	}
 
 	// Validate CloudWatch statistics
