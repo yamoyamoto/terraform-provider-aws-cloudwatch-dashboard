@@ -2,6 +2,8 @@
 
 A Terraform provider that enables structural definition of AWS CloudWatch Dashboards using HCL (HashiCorp Configuration Language). This provider internally constructs CloudWatch Dashboard JSON by composing multiple data sources.
 
+- [Provider Docs](https://registry.terraform.io/providers/yamoyamoto/cwdashboard/latest/docs)
+
 ## Installation
 
 To install this provider, copy and paste this code into your Terraform configuration. Then, run `terraform init`.
