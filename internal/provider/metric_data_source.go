@@ -3,6 +3,10 @@ package provider
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -91,6 +95,44 @@ type metricDataSourceModel struct {
 	Json types.String `tfsdk:"json"`
 }
 
+var (
+	validMetricStatistics = map[string]bool{
+		"SampleCount": true,
+		"Average":     true,
+		"Sum":         true,
+		"Minimum":     true,
+		"Maximum":     true,
+	}
+)
+
+func (d *metricDataSourceModel) Validate() error {
+	// Period must be 60 or a multiple of 60
+	if period := d.Period.ValueInt32(); period < 60 || period%60 != 0 {
+		return fmt.Errorf("period must be 60 or a multiple of 60, got: %d", period)
+	}
+
+	// Validate CloudWatch statistics
+	stat := d.Statistic.ValueString()
+	if strings.HasPrefix(stat, "p") {
+		percentile, err := strconv.ParseFloat(strings.TrimPrefix(stat, "p"), 64)
+		if err != nil || percentile < 0 || percentile > 100 {
+			return fmt.Errorf("invalid percentile statistic: %s, must be between p0 and p100", stat)
+		}
+	} else if !validMetricStatistics[stat] {
+		return fmt.Errorf("invalid statistic: %s", stat)
+	}
+
+	color := d.Color.ValueString()
+	if color != "" {
+		colorPattern := regexp.MustCompile(`^#[0-9A-Fa-f]{6}$`)
+		if !colorPattern.MatchString(color) {
+			return fmt.Errorf("invalid color format: %s, must be a six-digit hex color code (e.g., #FF0000)", color)
+		}
+	}
+
+	return nil
+}
+
 type metricDataSourceSettings struct {
 	Type          string            `json:"type"`
 	MetricName    string            `json:"metricName"`
@@ -118,6 +160,11 @@ func (d *metricDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if err := state.Validate(); err != nil {
+		resp.Diagnostics.AddError("invalid settings", err.Error())
 		return
 	}
 
