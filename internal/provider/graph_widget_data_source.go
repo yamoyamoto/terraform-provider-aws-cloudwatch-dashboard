@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -167,6 +170,86 @@ type graphWidgetDataSourceModel struct {
 	View           types.String                     `tfsdk:"view"`
 	Width          types.Int32                      `tfsdk:"width"`
 	Json           types.String                     `tfsdk:"json"`
+}
+
+func (d *graphWidgetDataSourceModel) Validate() error {
+	// Period must be 60 or a multiple of 60
+	if period := d.Period.ValueInt32(); period < 60 || period%60 != 0 {
+		return fmt.Errorf("period must be 60 or a multiple of 60, got: %d", period)
+	}
+
+	// Validate LegendPosition
+	if !d.LegendPosition.IsNull() {
+		legendPos := d.LegendPosition.ValueString()
+		validPositions := map[string]bool{
+			"right":  true,
+			"bottom": true,
+			"hidden": true,
+		}
+		if !validPositions[legendPos] {
+			return fmt.Errorf("legend_position must be one of 'right', 'bottom', or 'hidden', got: %s", legendPos)
+		}
+	}
+
+	// Validate Statistic
+	if !d.Statistic.IsNull() {
+		stat := d.Statistic.ValueString()
+		validStats := map[string]bool{
+			"SampleCount": true,
+			"Average":     true,
+			"Sum":         true,
+			"Minimum":     true,
+			"Maximum":     true,
+		}
+
+		if !validStats[stat] {
+			// Check if it's a percentile statistic (p??)
+			if strings.HasPrefix(stat, "p") {
+				percentile, err := strconv.ParseFloat(strings.TrimPrefix(stat, "p"), 64)
+				if err != nil || percentile < 0 || percentile > 100 {
+					return fmt.Errorf("invalid percentile statistic: %s, must be between p0 and p100", stat)
+				}
+			} else {
+				return fmt.Errorf("statistic must be one of 'SampleCount', 'Average', 'Sum', 'Minimum', 'Maximum', or a percentile (p0-p100), got: %s", stat)
+			}
+		}
+	}
+
+	// Validate Timezone format if present
+	if !d.Timezone.IsNull() {
+		timezone := d.Timezone.ValueString()
+		if timezone != "" {
+			// Timezone format: [+-]HHMM
+			timezonePattern := regexp.MustCompile(`^[+-][0-9]{4}$`)
+			if !timezonePattern.MatchString(timezone) {
+				return fmt.Errorf("invalid timezone format: %s. Must be in format +/-HHMM (e.g., +0130)", timezone)
+			}
+
+			// Validate hours (00-23) and minutes (00-59)
+			hours, _ := strconv.Atoi(timezone[1:3])
+			minutes, _ := strconv.Atoi(timezone[3:])
+			if hours > 23 {
+				return fmt.Errorf("invalid timezone hours: %02d. Must be between 00 and 23", hours)
+			}
+			if minutes > 59 {
+				return fmt.Errorf("invalid timezone minutes: %02d. Must be between 00 and 59", minutes)
+			}
+		}
+	}
+
+	// Validate View
+	if !d.View.IsNull() {
+		view := d.View.ValueString()
+		validViews := map[string]bool{
+			"timeSeries":  true,
+			"singleValue": true,
+		}
+		if !validViews[view] {
+			return fmt.Errorf("view must be either 'timeSeries' or 'singleValue', got: %s", view)
+		}
+	}
+
+	return nil
 }
 
 type graphWidgetYAxisDataSourceSettings struct {

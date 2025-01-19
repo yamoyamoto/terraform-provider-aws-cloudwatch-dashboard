@@ -4,8 +4,135 @@ import (
 	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/tj/assert"
 )
+
+func TestGraphWidgetDataSourceModel_Validate(t *testing.T) {
+	tests := []struct {
+		name    string
+		model   graphWidgetDataSourceModel
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name: "valid complete model",
+			model: graphWidgetDataSourceModel{
+				Period:         types.Int32Value(60),
+				LegendPosition: types.StringValue("right"),
+				Statistic:      types.StringValue("Average"),
+				Timezone:       types.StringValue("+0900"),
+				View:           types.StringValue("timeSeries"),
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid model with minimum fields",
+			model: graphWidgetDataSourceModel{
+				Period: types.Int32Value(60),
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid period - not allowed value",
+			model: graphWidgetDataSourceModel{
+				Period: types.Int32Value(45),
+			},
+			wantErr: true,
+			errMsg:  "period must be 60 or a multiple of 60, got: 45",
+		},
+		{
+			name: "invalid legend position",
+			model: graphWidgetDataSourceModel{
+				Period:         types.Int32Value(60),
+				LegendPosition: types.StringValue("top"),
+			},
+			wantErr: true,
+			errMsg:  "legend_position must be one of 'right', 'bottom', or 'hidden', got: top",
+		},
+		{
+			name: "valid percentile statistic",
+			model: graphWidgetDataSourceModel{
+				Period:    types.Int32Value(60),
+				Statistic: types.StringValue("p95"),
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid percentile statistic",
+			model: graphWidgetDataSourceModel{
+				Period:    types.Int32Value(60),
+				Statistic: types.StringValue("p101"),
+			},
+			wantErr: true,
+			errMsg:  "invalid percentile statistic: p101, must be between p0 and p100",
+		},
+		{
+			name: "invalid statistic",
+			model: graphWidgetDataSourceModel{
+				Period:    types.Int32Value(60),
+				Statistic: types.StringValue("InvalidStat"),
+			},
+			wantErr: true,
+			errMsg:  "statistic must be one of 'SampleCount', 'Average', 'Sum', 'Minimum', 'Maximum', or a percentile (p0-p100), got: InvalidStat",
+		},
+		{
+			name: "invalid timezone format",
+			model: graphWidgetDataSourceModel{
+				Period:   types.Int32Value(60),
+				Timezone: types.StringValue("0900"),
+			},
+			wantErr: true,
+			errMsg:  "invalid timezone format: 0900. Must be in format +/-HHMM (e.g., +0130)",
+		},
+		{
+			name: "invalid timezone hours",
+			model: graphWidgetDataSourceModel{
+				Period:   types.Int32Value(60),
+				Timezone: types.StringValue("+2500"),
+			},
+			wantErr: true,
+			errMsg:  "invalid timezone hours: 25. Must be between 00 and 23",
+		},
+		{
+			name: "invalid timezone minutes",
+			model: graphWidgetDataSourceModel{
+				Period:   types.Int32Value(60),
+				Timezone: types.StringValue("+0060"),
+			},
+			wantErr: true,
+			errMsg:  "invalid timezone minutes: 60. Must be between 00 and 59",
+		},
+		{
+			name: "invalid view",
+			model: graphWidgetDataSourceModel{
+				Period: types.Int32Value(60),
+				View:   types.StringValue("invalid"),
+			},
+			wantErr: true,
+			errMsg:  "view must be either 'timeSeries' or 'singleValue', got: invalid",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.model.Validate()
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("Validate() error = nil, want error")
+					return
+				}
+				if err.Error() != tt.errMsg {
+					t.Errorf("Validate() error = %v, want %v", err.Error(), tt.errMsg)
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("Validate() error = %v, want nil", err)
+			}
+		})
+	}
+}
 
 func TestGraphWidgetDatasourceSettings_ToCWDashboardBodyWidget(t *testing.T) {
 	t.Run("should successfully parse when all fields are specified", func(t *testing.T) {
